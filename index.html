@@ -305,7 +305,9 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 // ═══════════════════════════════════════
 const LS_DATA = 'familytree_data';
 const LS_URL  = 'familytree_gas_url';
-let GAS_URL   = localStorage.getItem(LS_URL) || '';
+
+// ✨ 이 아래 줄의 작은따옴표 안에 방금 [새 배포]로 복사한 새 웹앱 URL을 붙여넣으세요! ✨
+let GAS_URL   = 'https://script.google.com/macros/s/AKfycbyNwQiL3UW_-5NFSLzAmgEORNbKD_eHdu9BlGWTHzYynSfvletb3LNFI9FMm-QPY85d/exec';
 
 let members={}, relations=[], nextId=1, positions={};
 let tx=60,ty=80,scale=1;
