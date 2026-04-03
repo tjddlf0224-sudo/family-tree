@@ -357,7 +357,8 @@ async function saveToGAS(){
   setSyncStatus('saving','저장 중...');
   const payload=getPayload();
   try{
-    const res=await fetch(GAS_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    const res=await fetch(GAS_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)});
+    
     const json=await res.json();
     if(json.ok){
       saveToLocal();
