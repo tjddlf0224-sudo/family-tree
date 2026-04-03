@@ -4,6 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>가계도 · Family Tree</title>
+<link rel="manifest" href="manifest.json">
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="가계도">
+<link rel="apple-touch-icon" href="icon-192.png">
+
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;600;700&family=Noto+Sans+KR:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -357,14 +364,25 @@ async function saveToGAS(){
   setSyncStatus('saving','저장 중...');
   const payload=getPayload();
   try{
-    const res=await fetch(GAS_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)});
+    // ✨ Content-Type을 text/plain으로 변경하여 사전 요청(CORS) 에러 방지
+    const res=await fetch(GAS_URL,{
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:JSON.stringify(payload)
+    });
     
     const json=await res.json();
     if(json.ok){
+      // ✨ 서버에서 구글 드라이브 URL로 변환해준 새 데이터를 적용
+      if(json.data) applyData(json.data); 
+      
       saveToLocal();
       setSyncStatus('saved','저장 완료 ✓');
       setTimeout(()=>setSyncStatus('saved','클라우드 연결됨'),2000);
-    }else{setSyncStatus('error','저장 실패');toast('❌ 저장에 실패했습니다.');}
+    }else{
+      setSyncStatus('error','저장 실패');
+      toast('❌ 저장에 실패했습니다.');
+    }
   }catch(e){
     saveToLocal();
     setSyncStatus('error','오프라인 저장');
