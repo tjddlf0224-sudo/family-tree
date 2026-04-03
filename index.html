@@ -553,9 +553,18 @@ function renderNodes(){
     d.className='node'+(m.gender?' '+m.gender:'')+(selectedId===m.id?' selected':'');
     d.id='node-'+m.id;d.style.left=p.x+'px';d.style.top=p.y+'px';d.style.width=CW+'px';
     const ge=m.gender==='male'?'👨':m.gender==='female'?'👩':'👤';
-    const bs=m.birth?new Date(m.birth).toLocaleDateString('ko-KR',{year:'numeric',month:'short',day:'numeric'}):'';
     
-    // ✨ 추가된 핵심: 화면에 표시할 때는 [1], [2]를 숨겨주는 처리
+    // ⭐️ 전통 한국식 나이 계산 (현재 연도 - 출생 연도 + 1)
+    let ageStr = '';
+    if (m.birth) {
+      const birthDate = new Date(m.birth);
+      const today = new Date();
+      let age = today.getFullYear() - birthDate.getFullYear() + 1;
+      
+      if (!isNaN(age)) ageStr = age + '세';
+    }
+
+    // 메모에서 [1], [2] 등 정렬용 숫자를 숨김 처리
     let displayMemo = m.memo || '';
     displayMemo = displayMemo.replace(/^\[\d+\]\s*/, '');
 
@@ -563,7 +572,7 @@ function renderNodes(){
       ${m.photo?`<img class="node-photo" src="${m.photo}">`:`<div class="node-photo-placeholder">${ge}</div>`}
       <div class="node-info">
         <div class="node-name"><span class="node-gender-dot"></span>${m.name}</div>
-        ${bs?`<div class="node-birth">${bs}</div>`:''}
+        ${ageStr?`<div class="node-birth">${ageStr}</div>`:''}
         ${displayMemo?`<div class="node-birth" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:9.5px">${displayMemo}</div>`:''}
       </div>
     </div>
