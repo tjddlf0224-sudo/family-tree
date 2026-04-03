@@ -364,7 +364,6 @@ async function saveToGAS(){
   setSyncStatus('saving','저장 중...');
   const payload=getPayload();
   try{
-    // ✨ Content-Type을 text/plain으로 변경하여 사전 요청(CORS) 에러 방지
     const res=await fetch(GAS_URL,{
       method:'POST',
       headers:{'Content-Type':'text/plain;charset=utf-8'},
@@ -373,19 +372,21 @@ async function saveToGAS(){
     
     const json=await res.json();
     if(json.ok){
-      // ✨ 서버에서 구글 드라이브 URL로 변환해준 새 데이터를 적용
       if(json.data) applyData(json.data); 
-      
       saveToLocal();
       setSyncStatus('saved','저장 완료 ✓');
       setTimeout(()=>setSyncStatus('saved','클라우드 연결됨'),2000);
     }else{
       setSyncStatus('error','저장 실패');
+      // 🚨 백엔드(GAS)에서 발생한 상세 에러를 화면에 팝업으로 띄움
+      alert('백엔드 에러 원인: ' + (json.error || '알 수 없는 에러'));
       toast('❌ 저장에 실패했습니다.');
     }
   }catch(e){
     saveToLocal();
     setSyncStatus('error','오프라인 저장');
+    // 🚨 통신 과정에서 발생한 상세 에러를 화면에 팝업으로 띄움
+    alert('네트워크/통신 에러 원인: ' + e.message);
     toast('⚠️ 오프라인 — 로컬에 저장됨');
   }
 }
