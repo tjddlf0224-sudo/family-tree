@@ -470,9 +470,22 @@ function computeLayout(){
   const hasParent=new Set(relations.filter(r=>r.type==='parent').map(r=>r.to));
   const sm={};
   relations.filter(r=>r.type==='spouse').forEach(r=>{(sm[r.from]=sm[r.from]||[]).push(r.to);(sm[r.to]=sm[r.to]||[]).push(r.from);});
+
+  // ⭐️ 핵심 수정: 배우자 중 한 명이라도 부모(윗세대)가 있다면, 
+  // 다른 배우자도 최상단(Root) 그룹에서 제외하여 부모가 무조건 위로 가도록 만듭니다.
+  let changed=true;
+  while(changed){
+    changed=false;
+    relations.filter(r=>r.type==='spouse').forEach(r=>{
+      if(hasParent.has(r.from) && !hasParent.has(r.to)){hasParent.add(r.to);changed=true;}
+      if(hasParent.has(r.to) && !hasParent.has(r.from)){hasParent.add(r.from);changed=true;}
+    });
+  }
+
   const ch=id=>relations.filter(r=>r.type==='parent'&&r.from===id).map(r=>r.to);
   const cch=id=>[...new Set([...ch(id),...(sm[id]||[]).flatMap(s=>ch(s))])];
   const vis=new Set();
+
   function place(id,x,y){
     if(vis.has(id))return{width:CW,centerX:x+CW/2};
     vis.add(id);
@@ -493,6 +506,7 @@ function computeLayout(){
     grp.forEach((gid,i)=>{positions[gid]={x:sx+i*(CW+HG/2),y};});
     return{width:tw,centerX:cx2};
   }
+
   let cx=0;
   const roots=[...allIds].filter(id=>!hasParent.has(id)),done=new Set();
   roots.forEach(id=>{
