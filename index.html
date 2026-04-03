@@ -486,12 +486,32 @@ function computeLayout(){
   const cch=id=>[...new Set([...ch(id),...(sm[id]||[]).flatMap(s=>ch(s))])];
   const vis=new Set();
 
+  // ✨ 추가된 핵심: [숫자] 메모를 최우선으로, 그다음 생년월일로 정렬하는 함수
+  const sortByAge = (a, b) => {
+    const getOrder = (memo) => {
+      if (!memo) return 9999;
+      const match = memo.match(/^\[(\d+)\]/);
+      return match ? parseInt(match[1], 10) : 9999;
+    };
+    const orderA = getOrder(members[a].memo);
+    const orderB = getOrder(members[b].memo);
+    if (orderA !== orderB) return orderA - orderB;
+    
+    const birthA = members[a].birth || "9999";
+    const birthB = members[b].birth || "9999";
+    return birthA.localeCompare(birthB);
+  };
+
   function place(id,x,y){
     if(vis.has(id))return{width:CW,centerX:x+CW/2};
     vis.add(id);
     const sp=(sm[id]||[]).filter(s=>!vis.has(s));
     sp.forEach(s=>vis.add(s));
-    const grp=[id,...sp],kids=cch(id);
+    
+    let kids=cch(id);
+    kids.sort(sortByAge); // 자녀들 정렬 적용
+
+    const grp=[id,...sp];
     let sw=0;
     if(kids.length){
       let cx=x;
@@ -508,7 +528,10 @@ function computeLayout(){
   }
 
   let cx=0;
-  const roots=[...allIds].filter(id=>!hasParent.has(id)),done=new Set();
+  let roots=[...allIds].filter(id=>!hasParent.has(id));
+  roots.sort(sortByAge); // 최상단 그룹 정렬 적용
+  
+  const done=new Set();
   roots.forEach(id=>{
     if(done.has(id))return;done.add(id);
     (sm[id]||[]).forEach(s=>done.add(s));
@@ -531,12 +554,17 @@ function renderNodes(){
     d.id='node-'+m.id;d.style.left=p.x+'px';d.style.top=p.y+'px';d.style.width=CW+'px';
     const ge=m.gender==='male'?'👨':m.gender==='female'?'👩':'👤';
     const bs=m.birth?new Date(m.birth).toLocaleDateString('ko-KR',{year:'numeric',month:'short',day:'numeric'}):'';
+    
+    // ✨ 추가된 핵심: 화면에 표시할 때는 [1], [2]를 숨겨주는 처리
+    let displayMemo = m.memo || '';
+    displayMemo = displayMemo.replace(/^\[\d+\]\s*/, '');
+
     d.innerHTML=`<div class="node-inner">
       ${m.photo?`<img class="node-photo" src="${m.photo}">`:`<div class="node-photo-placeholder">${ge}</div>`}
       <div class="node-info">
         <div class="node-name"><span class="node-gender-dot"></span>${m.name}</div>
         ${bs?`<div class="node-birth">${bs}</div>`:''}
-        ${m.memo?`<div class="node-birth" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:9.5px">${m.memo}</div>`:''}
+        ${displayMemo?`<div class="node-birth" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:9.5px">${displayMemo}</div>`:''}
       </div>
     </div>
     <div class="node-actions">
