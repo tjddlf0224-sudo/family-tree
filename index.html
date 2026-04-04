@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>가계도 · Family Tree</title>
 <link rel="manifest" href="manifest.json">
 
@@ -30,16 +30,27 @@
   --line: #c4a870;
   --spouse-line: #d4916a;
   --card-w: 140px;
-  --card-h: 170px;
+  --card-h: 200px;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow:hidden;}
 
-/* ── TOOLBAR ── */
+body {
+  font-family: 'Noto Sans KR', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100dvh; 
+  height: 100dvh;
+  overflow: hidden;
+  overscroll-behavior-y: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
 #toolbar{
   position:fixed;top:0;left:0;right:0;z-index:100;
   display:flex;align-items:center;gap:8px;
   padding:10px 16px;
+  padding-top: calc(10px + env(safe-area-inset-top));
   background:var(--surface);
   border-bottom:1.5px solid var(--border);
   box-shadow:0 2px 12px var(--shadow);
@@ -61,17 +72,33 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 #sync-status.loading{background:#e8f0ff;color:#2255bb;border-color:#8899dd;}
 .sync-dot{width:7px;height:7px;border-radius:50%;background:currentColor;flex-shrink:0;}
 
-/* ── SETUP BANNER ── */
-#setup-banner{position:fixed;top:52px;left:0;right:0;z-index:90;background:linear-gradient(135deg,#fff8e0,#fef8f0);border-bottom:2px solid #e0c060;padding:10px 18px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+#tree-tabs {
+  position:fixed; top:calc(52px + env(safe-area-inset-top)); left:0; right:0; z-index:95;
+  display:flex; background:var(--surface2);
+  border-bottom:1.5px solid var(--border);
+  box-shadow: 0 2px 8px var(--shadow);
+}
+.tree-tab {
+  flex:1; text-align:center; padding:12px 0; font-size:13.5px;
+  font-family:'Noto Sans KR',sans-serif; font-weight:500;
+  color:var(--text3); cursor:pointer; 
+  transition:all .2s; border-bottom: 3px solid transparent;
+}
+.tree-tab.active {
+  color:var(--accent); font-weight:700; border-bottom-color: var(--accent);
+}
+
+#setup-banner{position:fixed;top:calc(96px + env(safe-area-inset-top));left:0;right:0;z-index:90;background:linear-gradient(135deg,#fff8e0,#fef8f0);border-bottom:2px solid #e0c060;padding:10px 18px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
 #setup-banner.hidden{display:none;}
 .setup-text{font-size:12.5px;color:#6b4a10;flex:1;min-width:200px;}
 .setup-text b{color:#8b5010;}
-.setup-input{padding:6px 10px;border-radius:8px;border:1.5px solid #c8a840;background:#fff;font-size:12px;font-family:'Noto Sans KR',sans-serif;width:360px;max-width:100%;outline:none;color:#333;}
+.setup-input{padding:6px 10px;border-radius:8px;border:1.5px solid #c8a840;background:#fff;font-size:16px;font-family:'Noto Sans KR',sans-serif;width:360px;max-width:100%;outline:none;color:#333;}
 .setup-input:focus{border-color:var(--accent);}
 
-/* ── CANVAS ── */
 #canvas-wrap{
-  position:fixed;top:52px;left:0;right:0;bottom:0;overflow:hidden;cursor:grab;
+  position:fixed;top:calc(96px + env(safe-area-inset-top));left:0;right:0;bottom:0;
+  overflow:hidden;cursor:grab;
+  touch-action: none;
   background:
     radial-gradient(circle at 20% 80%,rgba(196,168,112,.08) 0%,transparent 50%),
     radial-gradient(circle at 80% 20%,rgba(176,96,128,.05) 0%,transparent 50%),
@@ -80,88 +107,79 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
     var(--bg);
   transition:top .2s;
 }
-#canvas-wrap.with-banner{top:100px;}
+#canvas-wrap.with-banner{top:calc(144px + env(safe-area-inset-top));}
 #canvas-wrap.grabbing{cursor:grabbing;}
 #canvas{position:absolute;transform-origin:0 0;}
 #lines-svg{position:absolute;top:0;left:0;pointer-events:none;overflow:visible;}
-.line-parent{stroke:var(--line);stroke-width:2;fill:none;stroke-linecap:round;}
-.line-spouse{stroke:var(--spouse-line);stroke-width:2;fill:none;stroke-dasharray:6 4;stroke-linecap:round;}
+.line-parent{stroke:var(--line);stroke-width:2.5;fill:none;stroke-linecap:round;}
+.line-spouse{stroke:var(--spouse-line);stroke-width:2.5;fill:none;stroke-dasharray:6 4;stroke-linecap:round;}
 
-/* ── NODE ── */
-.node{position:absolute;width:var(--card-w);cursor:pointer;transition:filter .2s;user-select:none;}
+.node{position:absolute;width:var(--card-w);cursor:pointer;transition:filter .2s;}
 .node:hover{filter:drop-shadow(0 4px 16px rgba(139,94,60,.35));}
 .node-inner{width:100%;background:var(--surface2);border-radius:14px;border:2px solid var(--border);overflow:hidden;box-shadow:0 2px 10px var(--shadow);transition:border-color .2s,box-shadow .2s;}
 .node.male .node-inner{border-color:#a8c8e0;}
 .node.female .node-inner{border-color:#e0a8c0;}
 .node.selected .node-inner{border-color:var(--accent);box-shadow:0 0 0 3px rgba(139,94,60,.2),0 4px 16px var(--shadow);}
-.node-photo{width:100%;height:88px;object-fit:cover;display:block;background:var(--bg);}
-.node-photo-placeholder{width:100%;height:88px;display:flex;align-items:center;justify-content:center;font-size:32px;background:linear-gradient(135deg,var(--bg),var(--border2));}
+
+.node-photo{width:100%; aspect-ratio: 1/1; object-fit:cover; display:block; background:var(--bg); pointer-events: none;}
+.node-photo-placeholder{width:100%; aspect-ratio: 1/1; display:flex; align-items:center; justify-content:center; font-size:36px; background:linear-gradient(135deg,var(--bg),var(--border2)); pointer-events: none;}
 .node.male .node-photo-placeholder{background:linear-gradient(135deg,#ddeef8,#b8d4e8);}
 .node.female .node-photo-placeholder{background:linear-gradient(135deg,#f8dde8,#e8b8c8);}
-.node-info{padding:8px 8px 10px;}
+
+.node-info{padding:8px 8px 10px; pointer-events: none;}
 .node-name{font-family:'Noto Serif KR',serif;font-size:13px;font-weight:600;text-align:center;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .node-birth{font-size:10px;color:var(--text3);text-align:center;margin-top:2px;}
 .node-gender-dot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:4px;vertical-align:middle;}
 .node.male .node-gender-dot{background:var(--male);}
 .node.female .node-gender-dot{background:var(--female);}
-.node-actions{position:absolute;bottom:-34px;left:50%;transform:translateX(-50%);background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:4px;gap:2px;display:none;align-items:center;box-shadow:0 4px 12px var(--shadow);white-space:nowrap;z-index:10;}
+.node-actions{position:absolute;bottom:-38px;left:50%;transform:translateX(-50%);background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:4px;gap:2px;display:none;align-items:center;box-shadow:0 4px 12px var(--shadow);white-space:nowrap;z-index:10;}
 .node.selected .node-actions{display:flex;}
-.node-act-btn{padding:4px 8px;border:none;background:transparent;font-size:11px;color:var(--text2);cursor:pointer;border-radius:6px;transition:background .15s,color .15s;font-family:'Noto Sans KR',sans-serif;}
+.node-act-btn{padding:5px 8px;border:none;background:transparent;font-size:12px;color:var(--text2);cursor:pointer;border-radius:6px;transition:background .15s,color .15s;font-family:'Noto Sans KR',sans-serif;}
 .node-act-btn:hover{background:var(--accent);color:#fff;}
 .node-act-btn.del:hover{background:#c0392b;color:#fff;}
 
-/* ── MODAL ── */
 .modal-backdrop{position:fixed;inset:0;z-index:200;background:rgba(44,32,16,.45);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:16px;}
-.modal{background:var(--surface2);border-radius:18px;border:2px solid var(--border);box-shadow:0 8px 40px rgba(44,32,16,.25);width:100%;max-width:420px;max-height:90vh;overflow-y:auto;}
+.modal{background:var(--surface2);border-radius:18px;border:2px solid var(--border);box-shadow:0 8px 40px rgba(44,32,16,.25);width:100%;max-width:420px;max-height:90dvh;overflow-y:auto;}
 .modal-header{padding:18px 20px 12px;border-bottom:1.5px solid var(--border2);display:flex;align-items:center;justify-content:space-between;}
 .modal-title{font-family:'Noto Serif KR',serif;font-size:16px;font-weight:700;color:var(--accent);}
-.modal-close{width:30px;height:30px;border-radius:50%;border:none;background:var(--bg);color:var(--text2);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:background .15s;}
-.modal-close:hover{background:var(--border);}
+.modal-close{width:30px;height:30px;border-radius:50%;border:none;background:var(--bg);color:var(--text2);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;}
 .modal-body{padding:16px 20px 20px;display:flex;flex-direction:column;gap:14px;}
 .form-group{display:flex;flex-direction:column;gap:5px;}
 .form-label{font-size:12px;font-weight:500;color:var(--text2);}
-.form-input,.form-select,.form-textarea{padding:8px 12px;border-radius:9px;border:1.5px solid var(--border);background:var(--surface);color:var(--text);font-size:13px;font-family:'Noto Sans KR',sans-serif;transition:border-color .15s;outline:none;}
+
+.form-input,.form-select,.form-textarea{
+  padding:10px 12px;border-radius:9px;border:1.5px solid var(--border);background:var(--surface);
+  color:var(--text);font-family:'Noto Sans KR',sans-serif;outline:none;
+  font-size: 16px !important; 
+}
 .form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--accent);}
 .form-textarea{resize:vertical;min-height:60px;}
 .form-row{display:flex;gap:10px;}
 .form-row .form-group{flex:1;}
-.photo-upload-area{border:2px dashed var(--border);border-radius:10px;padding:12px;text-align:center;cursor:pointer;transition:border-color .15s,background .15s;background:var(--bg);}
-.photo-upload-area:hover{border-color:var(--accent);background:var(--surface);}
-.photo-preview{width:70px;height:70px;border-radius:50%;object-fit:cover;border:2px solid var(--border);display:block;margin:0 auto 6px;}
-.photo-upload-text{font-size:11px;color:var(--text3);}
 .modal-footer{padding:10px 20px 16px;display:flex;gap:8px;justify-content:flex-end;border-top:1.5px solid var(--border2);}
-.btn{padding:8px 18px;border-radius:9px;border:1.5px solid var(--border);font-size:13px;font-family:'Noto Sans KR',sans-serif;cursor:pointer;font-weight:500;transition:all .15s;}
+.btn{padding:10px 18px;border-radius:9px;border:1.5px solid var(--border);font-size:14px;font-family:'Noto Sans KR',sans-serif;cursor:pointer;font-weight:600;}
 .btn-cancel{background:var(--surface);color:var(--text2);}
-.btn-cancel:hover{background:var(--border);}
 .btn-save{background:var(--accent);color:#fff;border-color:var(--accent);}
-.btn-save:hover{background:var(--accent2);border-color:var(--accent2);}
 
-/* ── LEGEND ── */
-#legend{position:fixed;bottom:16px;left:16px;z-index:100;background:var(--surface2);border:1.5px solid var(--border);border-radius:12px;padding:10px 14px;box-shadow:0 4px 16px var(--shadow);font-size:11px;color:var(--text2);}
+#legend{position:fixed;bottom:calc(16px + env(safe-area-inset-bottom));left:16px;z-index:100;background:var(--surface2);border:1.5px solid var(--border);border-radius:12px;padding:10px 14px;box-shadow:0 4px 16px var(--shadow);font-size:11px;color:var(--text2);}
 .legend-item{display:flex;align-items:center;gap:6px;margin-bottom:3px;}
-.legend-item:last-child{margin-bottom:0;}
 .legend-line{width:24px;height:2px;border-radius:1px;}
 .legend-line.parent{background:var(--line);}
 .legend-line.spouse{background:transparent;border-top:2px dashed var(--spouse-line);}
 
-/* ── HELP ── */
-#help-panel{position:fixed;bottom:16px;right:16px;z-index:100;background:var(--surface2);border:1.5px solid var(--border);border-radius:14px;padding:14px 16px;box-shadow:0 4px 20px var(--shadow);font-size:11.5px;color:var(--text2);max-width:230px;line-height:1.7;transition:opacity .3s,transform .3s;}
-#help-panel.hidden{opacity:0;pointer-events:none;transform:translateY(8px);}
+#help-panel{position:fixed;bottom:calc(16px + env(safe-area-inset-bottom));right:16px;z-index:100;background:var(--surface2);border:1.5px solid var(--border);border-radius:14px;padding:14px 16px;box-shadow:0 4px 20px var(--shadow);font-size:11.5px;color:var(--text2);max-width:230px;line-height:1.7;}
+#help-panel.hidden{opacity:0;pointer-events:none;}
 #help-panel h4{font-family:'Noto Serif KR',serif;font-size:13px;color:var(--accent);margin-bottom:8px;}
 .help-row{display:flex;gap:6px;align-items:flex-start;margin-bottom:2px;}
 
-/* ── CTX MENU ── */
 #ctx-menu{position:fixed;z-index:300;background:var(--surface2);border:1.5px solid var(--border);border-radius:11px;padding:6px;box-shadow:0 6px 24px var(--shadow);min-width:170px;display:none;}
-#ctx-menu .ctx-item{padding:7px 12px;border-radius:7px;font-size:12.5px;cursor:pointer;color:var(--text);display:flex;align-items:center;gap:8px;transition:background .12s;}
-#ctx-menu .ctx-item:hover{background:var(--bg);}
+#ctx-menu .ctx-item{padding:9px 12px;border-radius:7px;font-size:13.5px;cursor:pointer;color:var(--text);display:flex;align-items:center;gap:8px;}
 #ctx-menu .ctx-item.danger{color:#c0392b;}
 #ctx-menu .ctx-sep{height:1px;background:var(--border2);margin:4px 0;}
 
-/* ── TOAST ── */
-#toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%) translateY(80px);z-index:300;background:var(--text);color:#fff;padding:9px 18px;border-radius:10px;font-size:12.5px;opacity:0;transition:transform .3s,opacity .3s;white-space:nowrap;}
+#toast{position:fixed;bottom:calc(16px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%) translateY(80px);z-index:300;background:var(--text);color:#fff;padding:9px 18px;border-radius:10px;font-size:12.5px;opacity:0;transition:transform .3s,opacity .3s;white-space:nowrap;}
 #toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
 
-/* ── LOADING ── */
 #loading-overlay{position:fixed;inset:0;z-index:400;background:rgba(245,240,232,.85);backdrop-filter:blur(4px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;}
 #loading-overlay.hidden{display:none;}
 .loader{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;}
@@ -171,10 +189,9 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 @media(max-width:600px){
   .toolbar-title{font-size:14px;}
   .tb-btn span{display:none;}
-  .tb-btn{padding:6px 8px;}
+  .tb-btn{padding:8px;}
   #help-panel{display:none;}
-  :root{--card-w:120px;--card-h:148px;}
-  .node-photo,.node-photo-placeholder{height:72px;}
+  :root{--card-w:120px;--card-h:185px;}
   .setup-input{width:100%;}
 }
 </style>
@@ -216,8 +233,15 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
   </button>
 </div>
 
+<div id="tree-tabs">
+  <div class="tree-tab active" onclick="switchTree('친가')">친가</div>
+  <div class="tree-tab" onclick="switchTree('친외가')">친외가</div>
+  <div class="tree-tab" onclick="switchTree('처가')">처가</div>
+  <div class="tree-tab" onclick="switchTree('처외가')">처외가</div>
+</div>
+
 <div id="setup-banner">
-  <div class="setup-text">☁️ <b>GAS URL 설정</b> — Google Apps Script 웹앱 URL을 입력하면 어떤 폰에서도 데이터가 유지됩니다.</div>
+  <div class="setup-text">☁️ <b>GAS URL 설정</b> — 클라우드 저장을 위한 링크</div>
   <input class="setup-input" id="gas-url-input" placeholder="https://script.google.com/macros/s/.../exec">
   <button class="tb-btn primary" onclick="applyGasUrl()">연결</button>
   <button class="tb-btn" onclick="dismissBanner()">나중에</button>
@@ -237,10 +261,8 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
   <h4>📖 사용 방법</h4>
   <div class="help-row">➕ <span>인물 추가 버튼으로 등록</span></div>
   <div class="help-row">👆 <span>카드 클릭 → 하단 메뉴</span></div>
-  <div class="help-row">✏️ <span>우클릭 → 상세 메뉴</span></div>
+  <div class="help-row">✏️ <span>길게 누르기(우클릭) → 상세 메뉴</span></div>
   <div class="help-row">🖱️ <span>빈 곳 드래그로 이동</span></div>
-  <div class="help-row">☁️ <span>저장 버튼 → 클라우드 동기화</span></div>
-  <div class="help-row">📐 <span>맞춤 버튼으로 전체 보기</span></div>
 </div>
 
 <div id="ctx-menu">
@@ -261,21 +283,24 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
       <button class="modal-close" onclick="closeModal()">✕</button>
     </div>
     <div class="modal-body">
-      <div class="form-group" style="align-items:center">
-        <div class="photo-upload-area" onclick="document.getElementById('photo-input').click()">
-          <img id="photo-preview-img" class="photo-preview" src="" style="display:none">
-          <div id="photo-placeholder" style="font-size:36px;margin-bottom:4px">👤</div>
-          <div class="photo-upload-text">사진 클릭하여 업로드</div>
+      
+      <div class="form-group" style="text-align: center; margin-bottom: 5px;">
+        <div style="width: 100px; height: 100px; border-radius: 12px; border: 2px dashed #d4c8b0; overflow: hidden; position: relative; margin: 0 auto; background: #fff; touch-action: none;">
+          <input type="file" id="modal-photo-upload" accept="image/*" style="display:none;">
+          <img id="modal-photo-preview" style="position: absolute; cursor: grab; transform-origin: top left; display: none; left: 0; top: 0; pointer-events: none;">
+          <div id="modal-photo-placeholder" onclick="document.getElementById('modal-photo-upload').click()" style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:12px; color:#a0906e; font-weight: 600;">사진 등록</div>
         </div>
-        <input type="file" id="photo-input" accept="image/*" style="display:none" onchange="handlePhotoUpload(event)">
+        <p style="font-size: 11px; color: #8b5e3c; margin-top: 8px; margin-bottom:0;">사진을 드래그해 얼굴 위치를 맞추세요</p>
+        <button type="button" onclick="document.getElementById('modal-photo-upload').click()" style="margin-top: 6px; font-size: 12px; padding: 6px 12px; cursor: pointer; background: var(--surface); border: 1.5px solid var(--border); border-radius: 6px; color: var(--text);">새 사진 올리기</button>
       </div>
+
       <div class="form-group">
         <label class="form-label">이름 *</label>
         <input class="form-input" id="f-name" placeholder="이름을 입력하세요">
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label class="form-label">생년월일</label>
+          <label class="form-label">출생 연도</label>
           <input class="form-input" id="f-birth" type="date">
         </div>
         <div class="form-group">
@@ -288,7 +313,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
         </div>
       </div>
       <div class="form-group">
-        <label class="form-label">메모</label>
+        <label class="form-label">메모 (앞에 [1], [2]를 적으면 강제정렬)</label>
         <textarea class="form-textarea" id="f-memo" placeholder="직업, 특이사항 등"></textarea>
       </div>
     </div>
@@ -301,23 +326,46 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 
 <script>
 // ═══════════════════════════════════════
-// CONFIG
+// CONFIG & STATE
 // ═══════════════════════════════════════
 const LS_DATA = 'familytree_data';
 const LS_URL  = 'familytree_gas_url';
 
-// ✨ 이 아래 줄의 작은따옴표 안에 방금 [새 배포]로 복사한 새 웹앱 URL을 붙여넣으세요! ✨
 let GAS_URL   = 'https://script.google.com/macros/s/AKfycbyNwQiL3UW_-5NFSLzAmgEORNbKD_eHdu9BlGWTHzYynSfvletb3LNFI9FMm-QPY85d/exec';
 
 let members={}, relations=[], nextId=1, positions={};
 let tx=60,ty=80,scale=1;
 let dragging=false,lastMx=0,lastMy=0;
-let selectedId=null,modalMode=null,editPhotoData=null;
+let selectedId=null,modalMode=null;
 let saveTimer=null;
-const CW=140,CH=170,HG=50,VG=90;
+const CW=140,CH=200,HG=50,VG=90;
+
+let currentTree = '친가';
+let visibleMembers = {};
+let visibleRelations = [];
+
+// ✨ 구글 드라이브 URL 자동 변환기 (엑스박스 방지용)
+function getValidImageUrl(url) {
+  if (!url) return '';
+  if (url.startsWith('data:')) return url; // Base64 그대로 통과
+  
+  // 구글 드라이브 링크인 경우 (공유 링크 -> 이미지 다이렉트 링크로 변환)
+  if (url.includes('drive.google.com')) {
+    let id = null;
+    const match1 = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+    const match2 = url.match(/id=([a-zA-Z0-9_-]+)/);
+    if (match1) id = match1[1];
+    else if (match2) id = match2[1];
+    
+    if (id) {
+      return `https://drive.google.com/uc?export=view&id=${id}`;
+    }
+  }
+  return url;
+}
 
 // ═══════════════════════════════════════
-// SETUP BANNER
+// SETUP BANNER & SYNC
 // ═══════════════════════════════════════
 function applyGasUrl(){
   const url=document.getElementById('gas-url-input').value.trim();
@@ -331,17 +379,11 @@ function dismissBanner(){
   document.getElementById('canvas-wrap').classList.remove('with-banner');
 }
 
-// ═══════════════════════════════════════
-// SYNC STATUS
-// ═══════════════════════════════════════
 function setSyncStatus(state,text){
   const el=document.getElementById('sync-status');
   el.className=state; document.getElementById('sync-text').textContent=text;
 }
 
-// ═══════════════════════════════════════
-// GAS LOAD / SAVE
-// ═══════════════════════════════════════
 async function loadFromGAS(){
   if(!GAS_URL){hideLoading();loadFromLocal();return;}
   showLoading();
@@ -355,8 +397,7 @@ async function loadFromGAS(){
     }else{loadFromLocal();setSyncStatus('error','불러오기 실패');}
   }catch(e){
     loadFromLocal();
-    setSyncStatus('error','오프라인 — 로컬 사용 중');
-    toast('⚠️ 서버 연결 실패 — 로컬 데이터 사용');
+    setSyncStatus('error','오프라인');
   }
   hideLoading();
 }
@@ -371,7 +412,6 @@ async function saveToGAS(){
       headers:{'Content-Type':'text/plain;charset=utf-8'},
       body:JSON.stringify(payload)
     });
-    
     const json=await res.json();
     if(json.ok){
       if(json.data) applyData(json.data); 
@@ -380,16 +420,10 @@ async function saveToGAS(){
       setTimeout(()=>setSyncStatus('saved','클라우드 연결됨'),2000);
     }else{
       setSyncStatus('error','저장 실패');
-      // 🚨 백엔드(GAS)에서 발생한 상세 에러를 화면에 팝업으로 띄움
-      alert('백엔드 에러 원인: ' + (json.error || '알 수 없는 에러'));
-      toast('❌ 저장에 실패했습니다.');
     }
   }catch(e){
     saveToLocal();
     setSyncStatus('error','오프라인 저장');
-    // 🚨 통신 과정에서 발생한 상세 에러를 화면에 팝업으로 띄움
-    alert('네트워크/통신 에러 원인: ' + e.message);
-    toast('⚠️ 오프라인 — 로컬에 저장됨');
   }
 }
 
@@ -401,8 +435,7 @@ function applyData(d){
 function saveToLocal(){localStorage.setItem(LS_DATA,JSON.stringify(getPayload()));}
 function loadFromLocal(){
   const raw=localStorage.getItem(LS_DATA);
-  if(raw){try{applyData(JSON.parse(raw));setSyncStatus('idle','로컬 데이터');toast('💾 로컬 데이터를 불러왔습니다.');}catch(e){setSyncStatus('idle','새 가계도');}}
-  else setSyncStatus('idle','새 가계도');
+  if(raw){try{applyData(JSON.parse(raw));setSyncStatus('idle','로컬 데이터');}catch(e){}}
   hideLoading();
 }
 function scheduleSave(){clearTimeout(saveTimer);setSyncStatus('saving','변경 감지...');saveTimer=setTimeout(()=>saveToGAS(),3000);}
@@ -412,8 +445,17 @@ function showLoading(){document.getElementById('loading-overlay').classList.remo
 function hideLoading(){document.getElementById('loading-overlay').classList.add('hidden');}
 
 // ═══════════════════════════════════════
-// CANVAS INTERACTION
+// TABS & CANVAS
 // ═══════════════════════════════════════
+function switchTree(treeName) {
+  currentTree = treeName;
+  document.querySelectorAll('.tree-tab').forEach(el => {
+    el.classList.toggle('active', el.textContent === treeName);
+  });
+  selectedId = null; tx = 60; ty = 80; scale = 1; render();
+  setTimeout(fitView, 50);
+}
+
 const wrap=document.getElementById('canvas-wrap');
 const canvas=document.getElementById('canvas');
 
@@ -426,9 +468,14 @@ wrap.addEventListener('wheel',e=>{
   const mx=e.clientX-r.left,my=e.clientY-r.top;
   tx=mx-(mx-tx)*f;ty=my-(my-ty)*f;scale=Math.min(3,Math.max(0.2,scale*f));applyT();
 },{passive:false});
+
 let touches={};
-wrap.addEventListener('touchstart',e=>{[...e.changedTouches].forEach(t=>touches[t.identifier]={x:t.clientX,y:t.clientY});},{passive:true});
+wrap.addEventListener('touchstart',e=>{
+  if(e.target.closest('.node-actions')) return;
+  [...e.changedTouches].forEach(t=>touches[t.identifier]={x:t.clientX,y:t.clientY});
+},{passive:false});
 wrap.addEventListener('touchmove',e=>{
+  if(e.target.closest('.node-actions')) return;
   e.preventDefault();
   if(Object.keys(touches).length===1){
     const t=e.changedTouches[0],p=touches[t.identifier];
@@ -448,11 +495,13 @@ wrap.addEventListener('touchmove',e=>{
   }
 },{passive:false});
 wrap.addEventListener('touchend',e=>{[...e.changedTouches].forEach(t=>delete touches[t.identifier]);});
+wrap.addEventListener('touchcancel',e=>{[...e.changedTouches].forEach(t=>delete touches[t.identifier]);}); 
 
 function applyT(){canvas.style.transform=`translate(${tx}px,${ty}px) scale(${scale})`;document.getElementById('zoom-display').textContent=Math.round(scale*100)+'%';renderLines();}
 function zoom(d){scale=Math.min(3,Math.max(0.2,scale+d));applyT();}
 function fitView(){
-  const ids=Object.keys(positions);if(!ids.length)return;
+  const ids=Object.keys(positions);
+  if(!ids.length){ tx=60; ty=80; scale=1; applyT(); return; }
   let x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity;
   ids.forEach(id=>{const p=positions[id];x0=Math.min(x0,p.x);y0=Math.min(y0,p.y);x1=Math.max(x1,p.x+CW);y1=Math.max(y1,p.y+CH);});
   const r=wrap.getBoundingClientRect();
@@ -461,44 +510,56 @@ function fitView(){
 }
 
 // ═══════════════════════════════════════
-// LAYOUT
+// RENDER & LAYOUT
 // ═══════════════════════════════════════
+function render(){
+  const catMap = {};
+  relations.filter(r=>r.type==='category').forEach(r=>catMap[r.to]=r.from);
+  
+  visibleMembers = {};
+  Object.values(members).forEach(m => {
+    if ((catMap[m.id] || '친가') === currentTree) visibleMembers[m.id] = m;
+  });
+  visibleRelations = relations.filter(r => r.type !== 'category' && visibleMembers[r.from] && visibleMembers[r.to]);
+
+  computeLayout();
+  renderNodes();
+  renderLines();
+}
+
 function computeLayout(){
   positions={};
-  if(!Object.keys(members).length)return;
-  const allIds=new Set(Object.keys(members));
-  const hasParent=new Set(relations.filter(r=>r.type==='parent').map(r=>r.to));
+  if(!Object.keys(visibleMembers).length)return;
+  const allIds=new Set(Object.keys(visibleMembers));
+  const hasParent=new Set(visibleRelations.filter(r=>r.type==='parent').map(r=>r.to));
   const sm={};
-  relations.filter(r=>r.type==='spouse').forEach(r=>{(sm[r.from]=sm[r.from]||[]).push(r.to);(sm[r.to]=sm[r.to]||[]).push(r.from);});
+  visibleRelations.filter(r=>r.type==='spouse').forEach(r=>{(sm[r.from]=sm[r.from]||[]).push(r.to);(sm[r.to]=sm[r.to]||[]).push(r.from);});
 
-  // ⭐️ 핵심 수정: 배우자 중 한 명이라도 부모(윗세대)가 있다면, 
-  // 다른 배우자도 최상단(Root) 그룹에서 제외하여 부모가 무조건 위로 가도록 만듭니다.
   let changed=true;
   while(changed){
     changed=false;
-    relations.filter(r=>r.type==='spouse').forEach(r=>{
+    visibleRelations.filter(r=>r.type==='spouse').forEach(r=>{
       if(hasParent.has(r.from) && !hasParent.has(r.to)){hasParent.add(r.to);changed=true;}
       if(hasParent.has(r.to) && !hasParent.has(r.from)){hasParent.add(r.from);changed=true;}
     });
   }
 
-  const ch=id=>relations.filter(r=>r.type==='parent'&&r.from===id).map(r=>r.to);
+  const ch=id=>visibleRelations.filter(r=>r.type==='parent'&&r.from===id).map(r=>r.to);
   const cch=id=>[...new Set([...ch(id),...(sm[id]||[]).flatMap(s=>ch(s))])];
   const vis=new Set();
 
-  // ✨ 추가된 핵심: [숫자] 메모를 최우선으로, 그다음 생년월일로 정렬하는 함수
   const sortByAge = (a, b) => {
     const getOrder = (memo) => {
       if (!memo) return 9999;
       const match = memo.match(/^\[(\d+)\]/);
       return match ? parseInt(match[1], 10) : 9999;
     };
-    const orderA = getOrder(members[a].memo);
-    const orderB = getOrder(members[b].memo);
+    const orderA = getOrder(visibleMembers[a].memo);
+    const orderB = getOrder(visibleMembers[b].memo);
     if (orderA !== orderB) return orderA - orderB;
     
-    const birthA = members[a].birth || "9999";
-    const birthB = members[b].birth || "9999";
+    const birthA = visibleMembers[a].birth || "9999";
+    const birthB = visibleMembers[b].birth || "9999";
     return birthA.localeCompare(birthB);
   };
 
@@ -509,7 +570,7 @@ function computeLayout(){
     sp.forEach(s=>vis.add(s));
     
     let kids=cch(id);
-    kids.sort(sortByAge); // 자녀들 정렬 적용
+    kids.sort(sortByAge);
 
     const grp=[id,...sp];
     let sw=0;
@@ -529,7 +590,7 @@ function computeLayout(){
 
   let cx=0;
   let roots=[...allIds].filter(id=>!hasParent.has(id));
-  roots.sort(sortByAge); // 최상단 그룹 정렬 적용
+  roots.sort(sortByAge);
   
   const done=new Set();
   roots.forEach(id=>{
@@ -540,36 +601,33 @@ function computeLayout(){
   allIds.forEach(id=>{if(!vis.has(id)){positions[id]={x:cx,y:0};cx+=CW+HG;}});
 }
 
-// ═══════════════════════════════════════
-// RENDER
-// ═══════════════════════════════════════
-function render(){computeLayout();renderNodes();renderLines();}
-
 function renderNodes(){
   canvas.querySelectorAll('.node').forEach(n=>n.remove());
-  Object.values(members).forEach(m=>{
+  Object.values(visibleMembers).forEach(m=>{
     const p=positions[m.id];if(!p)return;
     const d=document.createElement('div');
     d.className='node'+(m.gender?' '+m.gender:'')+(selectedId===m.id?' selected':'');
     d.id='node-'+m.id;d.style.left=p.x+'px';d.style.top=p.y+'px';d.style.width=CW+'px';
     const ge=m.gender==='male'?'👨':m.gender==='female'?'👩':'👤';
     
-    // ⭐️ 전통 한국식 나이 계산 (현재 연도 - 출생 연도 + 1)
     let ageStr = '';
     if (m.birth) {
       const birthDate = new Date(m.birth);
       const today = new Date();
       let age = today.getFullYear() - birthDate.getFullYear() + 1;
-      
       if (!isNaN(age)) ageStr = age + '세';
     }
 
-    // 메모에서 [1], [2] 등 정렬용 숫자를 숨김 처리
     let displayMemo = m.memo || '';
     displayMemo = displayMemo.replace(/^\[\d+\]\s*/, '');
 
+    // ✨ photo_url 과 photo 모두 대응 & 드라이브 URL 변환
+    const rawPhoto = m.photo_url || m.photo || '';
+    const validPhotoSrc = getValidImageUrl(rawPhoto);
+
+    // 구글 보안 정책 우회를 위해 referrerpolicy="no-referrer" 필수 추가!
     d.innerHTML=`<div class="node-inner">
-      ${m.photo?`<img class="node-photo" src="${m.photo}">`:`<div class="node-photo-placeholder">${ge}</div>`}
+      ${validPhotoSrc?`<img class="node-photo" src="${validPhotoSrc}" referrerpolicy="no-referrer">`:`<div class="node-photo-placeholder">${ge}</div>`}
       <div class="node-info">
         <div class="node-name"><span class="node-gender-dot"></span>${m.name}</div>
         ${ageStr?`<div class="node-birth">${ageStr}</div>`:''}
@@ -594,9 +652,9 @@ function renderLines(){
   svg.setAttribute('width',r.width);svg.setAttribute('height',r.height);
   const ws=(x,y)=>({x:x*scale+tx,y:y*scale+ty});
   const sm={};
-  relations.filter(r=>r.type==='spouse').forEach(r=>{(sm[r.from]=sm[r.from]||[]).push(r.to);(sm[r.to]=sm[r.to]||[]).push(r.from);});
+  visibleRelations.filter(r=>r.type==='spouse').forEach(r=>{(sm[r.from]=sm[r.from]||[]).push(r.to);(sm[r.to]=sm[r.to]||[]).push(r.from);});
   const drawn=new Set();
-  relations.filter(r=>r.type==='spouse').forEach(r=>{
+  visibleRelations.filter(r=>r.type==='spouse').forEach(r=>{
     const key=[r.from,r.to].sort().join('-');
     if(drawn.has(key)||!positions[r.from]||!positions[r.to])return;drawn.add(key);
     const pf=positions[r.from],pt=positions[r.to];
@@ -605,7 +663,7 @@ function renderLines(){
     const path=document.createElementNS('http://www.w3.org/2000/svg','path');
     path.setAttribute('d',`M${a.x},${a.y} L${b.x},${b.y}`);path.setAttribute('class','line-spouse');svg.appendChild(path);
   });
-  relations.filter(r=>r.type==='parent').forEach(r=>{
+  visibleRelations.filter(r=>r.type==='parent').forEach(r=>{
     if(!positions[r.from]||!positions[r.to])return;
     const pb=ws(positions[r.from].x+CW/2,positions[r.from].y+CH);
     const ct=ws(positions[r.to].x+CW/2,positions[r.to].y);
@@ -617,14 +675,14 @@ function renderLines(){
 }
 
 // ═══════════════════════════════════════
-// SELECTION
+// SELECTION & MODAL
 // ═══════════════════════════════════════
 function selectNode(id){selectedId=selectedId===id?null:id;renderNodes();}
 document.addEventListener('click',()=>{if(selectedId){selectedId=null;renderNodes();}hideCtx();});
 function showCtx(e,id){
   selectedId=id;renderNodes();
   const m=document.getElementById('ctx-menu');m.style.display='block';
-  let x=e.clientX,y=e.clientY;
+  let x=e.clientX || (e.touches && e.touches[0].clientX), y=e.clientY || (e.touches && e.touches[0].clientY);
   if(x+180>window.innerWidth)x=window.innerWidth-185;
   if(y+200>window.innerHeight)y=window.innerHeight-205;
   m.style.left=x+'px';m.style.top=y+'px';
@@ -636,70 +694,233 @@ function showCtx(e,id){
 }
 function hideCtx(){document.getElementById('ctx-menu').style.display='none';}
 
-// ═══════════════════════════════════════
-// MODAL
-// ═══════════════════════════════════════
 function openAddModal(relId,action){
-  modalMode={action,relId,editId:null};editPhotoData=null;
+  modalMode={action,relId,editId:null};
   document.getElementById('modal-title').textContent=action==='child'?'자녀 추가':action==='spouse'?'배우자 추가':action==='parent'?'부모 추가':'인물 추가';
-  clearForm();document.getElementById('modal-backdrop').style.display='flex';
-  setTimeout(()=>document.getElementById('f-name').focus(),100);
+  clearForm(); resetPhotoEditor(null);
+  document.getElementById('modal-backdrop').style.display='flex';
 }
 function openEditModal(id){
   const m=members[id];if(!m)return;
-  modalMode={action:'edit',relId:null,editId:id};editPhotoData=m.photo||null;
+  modalMode={action:'edit',relId:null,editId:id};
   document.getElementById('modal-title').textContent='정보 수정';
   document.getElementById('f-name').value=m.name||'';document.getElementById('f-birth').value=m.birth||'';
   document.getElementById('f-gender').value=m.gender||'';document.getElementById('f-memo').value=m.memo||'';
-  if(m.photo){document.getElementById('photo-preview-img').src=m.photo;document.getElementById('photo-preview-img').style.display='block';document.getElementById('photo-placeholder').style.display='none';}
-  else resetPhotoUI();
+  
+  // ✨ photo_url 대응
+  const rawPhoto = m.photo_url || m.photo || '';
+  resetPhotoEditor(getValidImageUrl(rawPhoto));
   document.getElementById('modal-backdrop').style.display='flex';
 }
 function clearForm(){
   ['f-name','f-birth','f-memo'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('f-gender').value='';resetPhotoUI();
+  document.getElementById('f-gender').value='';
 }
-function resetPhotoUI(){document.getElementById('photo-preview-img').style.display='none';document.getElementById('photo-preview-img').src='';document.getElementById('photo-placeholder').style.display='block';}
 function closeModal(){document.getElementById('modal-backdrop').style.display='none';}
 function handleBackdropClick(e){if(e.target===document.getElementById('modal-backdrop'))closeModal();}
-function handlePhotoUpload(e){
-  const f=e.target.files[0];if(!f)return;
-  const rd=new FileReader();
-  rd.onload=ev=>{editPhotoData=ev.target.result;document.getElementById('photo-preview-img').src=editPhotoData;document.getElementById('photo-preview-img').style.display='block';document.getElementById('photo-placeholder').style.display='none';};
-  rd.readAsDataURL(f);
-}
+
 function saveModal(){
   const name=document.getElementById('f-name').value.trim();
   if(!name){toast('이름을 입력해주세요.');return;}
   const birth=document.getElementById('f-birth').value,gender=document.getElementById('f-gender').value,memo=document.getElementById('f-memo').value.trim();
+  
+  const photoData = getCroppedBase64();
+
   if(modalMode.action==='edit'){
-    const m=members[modalMode.editId];m.name=name;m.birth=birth;m.gender=gender;m.memo=memo;
-    if(editPhotoData)m.photo=editPhotoData;toast(`${name} 정보가 수정되었습니다.`);
+    const m=members[modalMode.editId];
+    m.name=name;m.birth=birth;m.gender=gender;m.memo=memo;
+    // ✨ 사진을 새로 바꿨을 때만 데이터 업데이트 (기존 드라이브 URL 보호)
+    if(photoData) {
+      m.photo = photoData;
+      m.photo_url = photoData;
+    }
+    toast(`${name} 정보가 수정되었습니다.`);
   }else{
-    const id='p'+nextId++;members[id]={id,name,birth,gender,memo,photo:editPhotoData||null};
+    const id='p'+nextId++;
+    members[id]={
+      id, name, birth, gender, memo, 
+      photo: photoData||null, 
+      photo_url: photoData||null // 호환성을 위해 둘 다 저장
+    };
+    relations.push({type:'category', from:currentTree, to:id});
     if(modalMode.action==='child'&&modalMode.relId)relations.push({type:'parent',from:modalMode.relId,to:id});
     else if(modalMode.action==='spouse'&&modalMode.relId)relations.push({type:'spouse',from:modalMode.relId,to:id});
     else if(modalMode.action==='parent'&&modalMode.relId)relations.push({type:'parent',from:id,to:modalMode.relId});
     toast(`${name} 님이 추가되었습니다.`);
   }
   closeModal();render();scheduleSave();
-  if(Object.keys(members).length===1)setTimeout(fitView,50);
+  if(Object.keys(visibleMembers).length===1)setTimeout(fitView,50);
 }
 function deleteMember(id){
   const m=members[id];if(!m)return;
   if(!confirm(`"${m.name}" 을(를) 삭제할까요?\n관련 관계도 모두 삭제됩니다.`))return;
-  delete members[id];delete positions[id];relations=relations.filter(r=>r.from!==id&&r.to!==id);
+  delete members[id];delete positions[id];
+  relations=relations.filter(r=>r.from!==id&&r.to!==id);
   if(selectedId===id)selectedId=null;render();scheduleSave();toast(`${m.name} 이(가) 삭제되었습니다.`);
 }
 
-// ═══════════════════════════════════════
-// HELP & TOAST
-// ═══════════════════════════════════════
 let helpVisible=true;
 function toggleHelp(){helpVisible=!helpVisible;document.getElementById('help-panel').classList.toggle('hidden',!helpVisible);}
 let toastTimer;
 function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),2800);}
 window.addEventListener('resize',renderLines);
+
+// ═══════════════════════════════════════
+// PHOTO ENGINE
+// ═══════════════════════════════════════
+let currentRawImg = null;
+let imgX = 0, imgY = 0, isDragging = false, startX, startY;
+const modalUIPixel = 100;
+
+document.addEventListener('change', function(e) {
+  if(e.target.id === 'modal-photo-upload') {
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = function(event) { 
+      const tempImg = new Image();
+      tempImg.onload = function() {
+        const MAX_SIZE = 800;
+        let w = tempImg.width, h = tempImg.height;
+        if (w > MAX_SIZE || h > MAX_SIZE) {
+          const r = Math.max(MAX_SIZE/w, MAX_SIZE/h);
+          w *= r; h *= r;
+        }
+        const resizeCvs = document.createElement('canvas');
+        resizeCvs.width = w; resizeCvs.height = h;
+        const resizeCtx = resizeCvs.getContext('2d');
+        resizeCtx.drawImage(tempImg, 0, 0, w, h);
+        
+        currentRawImg = new Image();
+        currentRawImg.onload = function() {
+          const previewImg = document.getElementById('modal-photo-preview');
+          const ratio = Math.max(modalUIPixel / currentRawImg.width, modalUIPixel / currentRawImg.height);
+          previewImg.style.width = (currentRawImg.width * ratio) + 'px';
+          previewImg.style.height = (currentRawImg.height * ratio) + 'px';
+          previewImg.src = currentRawImg.src;
+          previewImg.style.display = 'block';
+          previewImg.style.objectFit = 'fill';
+          document.getElementById('modal-photo-placeholder').style.display = 'none';
+          
+          imgX = (modalUIPixel - (currentRawImg.width * ratio)) / 2;
+          imgY = (modalUIPixel - (currentRawImg.height * ratio)) / 2;
+          updateImgPos();
+        };
+        currentRawImg.src = resizeCvs.toDataURL('image/jpeg', 0.85);
+      };
+      tempImg.src = event.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+});
+
+// ✨ 외부 URL 로드 시 CORS(보안 오류) 방지 처리를 추가
+function loadExistingPhotoToEditor(src) {
+  const previewImg = document.getElementById('modal-photo-preview');
+  
+  // 구글 드라이브나 외부 링크인 경우 캔버스로 자르지 않고 보기만 지원
+  if (src.startsWith('http')) {
+    previewImg.style.width = '100%';
+    previewImg.style.height = '100%';
+    previewImg.style.objectFit = 'cover';
+    previewImg.src = src;
+    previewImg.setAttribute('referrerpolicy', 'no-referrer');
+    previewImg.style.display = 'block';
+    previewImg.style.transform = `translate(0px, 0px)`;
+    document.getElementById('modal-photo-placeholder').style.display = 'none';
+    currentRawImg = null; // 외부 사진은 드래그 크롭 금지
+    return;
+  }
+
+  // Base64 등 내부 이미지인 경우 기존처럼 편집 가능
+  currentRawImg = new Image();
+  currentRawImg.onload = function() {
+    const ratio = Math.max(modalUIPixel / currentRawImg.width, modalUIPixel / currentRawImg.height);
+    previewImg.style.width = (currentRawImg.width * ratio) + 'px';
+    previewImg.style.height = (currentRawImg.height * ratio) + 'px';
+    previewImg.src = currentRawImg.src;
+    previewImg.style.display = 'block';
+    document.getElementById('modal-photo-placeholder').style.display = 'none';
+    imgX = (modalUIPixel - (currentRawImg.width * ratio)) / 2;
+    imgY = (modalUIPixel - (currentRawImg.height * ratio)) / 2;
+    updateImgPos();
+  };
+  currentRawImg.src = src;
+}
+
+function updateImgPos() {
+  const previewImg = document.getElementById('modal-photo-preview');
+  if(previewImg) previewImg.style.transform = `translate(${imgX}px, ${imgY}px)`;
+}
+
+function startDrag(e) {
+  const targetBox = e.target.closest('div[style*="border-radius: 12px"]');
+  if(!targetBox || !currentRawImg) return;
+  isDragging = true;
+  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+  startX = clientX - imgX; startY = clientY - imgY;
+  document.getElementById('modal-photo-preview').style.cursor = 'grabbing';
+}
+
+function doDrag(e) {
+  if(!isDragging) return;
+  if(e.cancelable) e.preventDefault();
+  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+  imgX = clientX - startX; imgY = clientY - startY;
+  updateImgPos();
+}
+
+function endDrag() { 
+  isDragging = false; 
+  const preview = document.getElementById('modal-photo-preview');
+  if(preview) preview.style.cursor = 'grab';
+}
+
+document.addEventListener('mousedown', startDrag);
+document.addEventListener('touchstart', startDrag, {passive: false});
+document.addEventListener('mousemove', doDrag, {passive: false});
+document.addEventListener('touchmove', doDrag, {passive: false});
+document.addEventListener('mouseup', endDrag);
+document.addEventListener('touchend', endDrag);
+document.addEventListener('touchcancel', endDrag);
+
+function getCroppedBase64() {
+  const previewImg = document.getElementById('modal-photo-preview');
+  if (!currentRawImg || previewImg.style.display === 'none') return null;
+  
+  try {
+    const CROP_SIZE = 160; 
+    const canvas = document.createElement('canvas');
+    canvas.width = CROP_SIZE; canvas.height = CROP_SIZE;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, CROP_SIZE, CROP_SIZE);
+    
+    const ratio = Math.max(CROP_SIZE / currentRawImg.width, CROP_SIZE / currentRawImg.height);
+    const scaleMultiplier = CROP_SIZE / modalUIPixel;
+    
+    ctx.translate(imgX * scaleMultiplier, imgY * scaleMultiplier); 
+    ctx.scale(ratio, ratio);
+    
+    ctx.drawImage(currentRawImg, 0, 0);
+    return canvas.toDataURL('image/jpeg', 0.85); 
+  } catch(e) {
+    console.warn("Photo crop memory error", e);
+    return null;
+  }
+}
+
+function resetPhotoEditor(existingPhotoSrc) {
+  currentRawImg = null;
+  const previewImg = document.getElementById('modal-photo-preview');
+  const placeholder = document.getElementById('modal-photo-placeholder');
+  const uploadInput = document.getElementById('modal-photo-upload');
+  if(uploadInput) uploadInput.value = '';
+  if(previewImg) { previewImg.style.display = 'none'; previewImg.style.transform = `translate(0px, 0px)`; previewImg.removeAttribute('referrerpolicy'); }
+  if(placeholder) placeholder.style.display = 'flex';
+  if (existingPhotoSrc) loadExistingPhotoToEditor(existingPhotoSrc);
+}
 
 // ═══════════════════════════════════════
 // INIT
