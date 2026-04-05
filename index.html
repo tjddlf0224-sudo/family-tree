@@ -482,14 +482,44 @@ async function saveToGAS(){
 }
 
 function getPayload(){return{members,relations,nextId};}
+
 function applyData(d){
-  members=d.members||{};relations=d.relations||[];nextId=d.nextId||(Object.keys(members).length+1);
-  render();setTimeout(fitView,80);
+  const raw = d.members || {};
+  // GAS는 photo_url 컬럼으로 반환 → photo에도 통일
+  Object.values(raw).forEach(m => {
+    const url = m.photo_url || m.photo || null;
+    m.photo     = url;
+    m.photo_url = url;
+  });
+  members=raw; relations=d.relations||[]; nextId=d.nextId||(Object.keys(raw).length+1);
+  render(); setTimeout(fitView,80);
 }
-function saveToLocal(){localStorage.setItem(LS_DATA,JSON.stringify(getPayload()));}
+
+// 로컬 저장 시 Base64 제거 (Drive URL만 유지)
+function saveToLocal(){
+  const safe = JSON.parse(JSON.stringify({members,relations,nextId}));
+  Object.values(safe.members).forEach(m=>{
+    if(m.photo     && m.photo.startsWith('data:'))     m.photo     = null;
+    if(m.photo_url && m.photo_url.startsWith('data:')) m.photo_url = null;
+  });
+  localStorage.setItem(LS_DATA, JSON.stringify(safe));
+}
 function loadFromLocal(){
   const raw=localStorage.getItem(LS_DATA);
-  if(raw){try{applyData(JSON.parse(raw));setSyncStatus('idle','로컬 데이터');}catch(e){}}
+  if(raw){
+    try{
+      const parsed=JSON.parse(raw);
+      // 로컬에 혹시 남은 Base64 제거 후 applyData
+      if(parsed.members){
+        Object.values(parsed.members).forEach(m=>{
+          if(m.photo     && m.photo.startsWith('data:'))     m.photo     = null;
+          if(m.photo_url && m.photo_url.startsWith('data:')) m.photo_url = null;
+        });
+      }
+      applyData(parsed);
+      setSyncStatus('idle','로컬 데이터');
+    }catch(e){}
+  }
   hideLoading();
 }
 function scheduleSave(){clearTimeout(saveTimer);setSyncStatus('saving','변경 감지...');saveTimer=setTimeout(()=>saveToGAS(),3000);}
@@ -748,17 +778,24 @@ function saveModal(){
   const name=document.getElementById('f-name').value.trim();
   if(!name){toast('이름을 입력해주세요.');return;}
   const birth=document.getElementById('f-birth').value,gender=document.getElementById('f-gender').value,memo=document.getElementById('f-memo').value.trim();
-  const photoData=getCroppedBase64();
+
+  // 새로 선택한 사진(Base64)만 가져옴. null이면 사진 변경 없음
+  const newPhotoBase64 = getCroppedBase64();
+
   if(modalMode.action==='edit'){
     const m=members[modalMode.editId];
-    m.name=name;m.birth=birth;m.gender=gender;m.memo=memo;
-    if(photoData){m.photo=photoData;m.photo_url=photoData;}
+    m.name=name; m.birth=birth; m.gender=gender; m.memo=memo;
+    // 새 사진 선택했을 때만 덮어씀 (기존 Drive URL 보호)
+    if(newPhotoBase64){ m.photo=newPhotoBase64; m.photo_url=newPhotoBase64; }
     toast(`${name} 정보가 수정되었습니다.`);
   }else{
     const id='p'+nextId++;
-    members[id]={id,name,birth,gender,memo,photo:photoData||null,photo_url:photoData||null};
+    members[id]={id,name,birth,gender,memo,
+      photo:    newPhotoBase64||null,
+      photo_url:newPhotoBase64||null
+    };
     relations.push({type:'category',from:currentTree,to:id});
-    if(modalMode.action==='child'&&modalMode.relId)relations.push({type:'parent',from:modalMode.relId,to:id});
+    if(modalMode.action==='child' &&modalMode.relId)relations.push({type:'parent',from:modalMode.relId,to:id});
     else if(modalMode.action==='spouse'&&modalMode.relId)relations.push({type:'spouse',from:modalMode.relId,to:id});
     else if(modalMode.action==='parent'&&modalMode.relId)relations.push({type:'parent',from:id,to:modalMode.relId});
     toast(`${name} 님이 추가되었습니다.`);
