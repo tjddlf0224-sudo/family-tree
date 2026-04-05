@@ -408,19 +408,10 @@ let currentTree = '친가';
 let visibleMembers = {};
 let visibleRelations = [];
 
-// ── 구글 드라이브 URL 자동 변환 ──
+// Base64 사진은 그대로 사용 (Drive URL 변환 불필요)
 function getValidImageUrl(url) {
   if (!url) return '';
-  if (url.startsWith('data:')) return url;
-  if (url.includes('drive.google.com')) {
-    let id = null;
-    const match1 = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
-    const match2 = url.match(/id=([a-zA-Z0-9_-]+)/);
-    if (match1) id = match1[1];
-    else if (match2) id = match2[1];
-    if (id) return `https://drive.google.com/uc?export=view&id=${id}`;
-  }
-  return url;
+  return url; // Base64 또는 일반 URL 그대로 반환
 }
 
 // ═══════════════════════════════════════
@@ -442,19 +433,29 @@ function setSyncStatus(state,text){
   el.className=state; document.getElementById('sync-text').textContent=text;
 }
 
+// ═══════════════════════════════════════
+// photos: { id → base64 } — 메모리에만 존재, 로컬/GAS 별도 관리
+// ═══════════════════════════════════════
+let photos = {}; // { memberId: 'data:image/jpeg;base64,...' }
+
 async function loadFromGAS(){
   if(!GAS_URL){hideLoading();loadFromLocal();return;}
   showLoading();
   try{
-    const res=await fetch(GAS_URL+'?t='+Date.now());
-    const json=await res.json();
-    if(json.ok&&json.data){
-      applyData(json.data); saveToLocal();
+    const res  = await fetch(GAS_URL+'?t='+Date.now());
+    const json = await res.json();
+    if(json.ok && json.data){
+      applyData(json.data);
+      saveToLocal();
       setSyncStatus('saved','클라우드 연결됨');
       toast('☁️ 가계도를 불러왔습니다.');
-    }else{loadFromLocal();setSyncStatus('error','불러오기 실패');}
-  }catch(e){
-    loadFromLocal(); setSyncStatus('error','오프라인');
+    } else {
+      loadFromLocal();
+      setSyncStatus('error','불러오기 실패');
+    }
+  } catch(e){
+    loadFromLocal();
+    setSyncStatus('error','오프라인');
   }
   hideLoading();
 }
@@ -462,77 +463,77 @@ async function loadFromGAS(){
 async function saveToGAS(){
   if(!GAS_URL){saveToLocal();setSyncStatus('idle','로컬 저장됨');return;}
   setSyncStatus('saving','저장 중...');
-  const payload=getPayload();
+
+  // payload: members(사진 제외) + relations + nextId + photos(별도)
+  const membersNoPhoto = {};
+  Object.values(members).forEach(m => {
+    membersNoPhoto[m.id] = {id:m.id,name:m.name,birth:m.birth,gender:m.gender,memo:m.memo};
+  });
+
+  const payload = {
+    members:   membersNoPhoto,
+    relations: relations,
+    nextId:    nextId,
+    photos:    photos   // { id: base64 } — 별도 시트에 저장
+  };
+
   try{
-    const res=await fetch(GAS_URL,{
-      method:'POST',
-      headers:{'Content-Type':'text/plain;charset=utf-8'},
-      body:JSON.stringify(payload)
+    const res  = await fetch(GAS_URL, {
+      method:  'POST',
+      headers: {'Content-Type':'text/plain;charset=utf-8'},
+      body:    JSON.stringify(payload)
     });
-    const json=await res.json();
+    const json = await res.json();
     if(json.ok){
-      // ✅ GAS가 Base64→Drive URL로 교체한 데이터를 받아서 적용
-      // applyData는 render()를 호출하므로 사진이 URL로 즉시 반영됨
-      if(json.data){
-        // members의 photo 필드를 GAS 반환값으로 교체 (URL 보장)
-        const gasMembers = json.data.members || {};
-        Object.keys(gasMembers).forEach(id => {
-          if(members[id]){
-            const url = gasMembers[id].photo_url || gasMembers[id].photo || null;
-            if(url && !url.startsWith('data:')){
-              members[id].photo     = url;
-              members[id].photo_url = url;
-            }
-          }
-        });
-      }
-      saveToLocal(); // ← URL로 교체된 뒤 로컬 저장
+      saveToLocal();
       setSyncStatus('saved','저장 완료 ✓');
       setTimeout(()=>setSyncStatus('saved','클라우드 연결됨'),2000);
-    }else{ setSyncStatus('error','저장 실패'); }
-  }catch(e){
-    saveToLocal(); setSyncStatus('error','오프라인 저장');
+    } else {
+      setSyncStatus('error','저장 실패');
+    }
+  } catch(e){
+    saveToLocal();
+    setSyncStatus('error','오프라인 저장');
   }
 }
 
-function getPayload(){return{members,relations,nextId};}
-
 function applyData(d){
-  const raw = d.members || {};
-  // GAS는 photo_url 컬럼으로 반환 → photo에도 통일
-  Object.values(raw).forEach(m => {
-    const url = m.photo_url || m.photo || null;
-    m.photo     = url;
-    m.photo_url = url;
+  members   = d.members   || {};
+  relations = d.relations || [];
+  nextId    = d.nextId    || (Object.keys(members).length + 1);
+  // 사진 병합: GAS에서 받은 photos 또는 로컬 photos
+  if(d.photos){
+    Object.assign(photos, d.photos);
+  }
+  // members에 photo 주입 (렌더링용)
+  Object.values(members).forEach(m => {
+    m.photo = photos[m.id] || null;
   });
-  members=raw; relations=d.relations||[]; nextId=d.nextId||(Object.keys(raw).length+1);
-  render(); setTimeout(fitView,80);
+  render();
+  setTimeout(fitView, 80);
 }
 
-// 로컬 저장 시 Base64 제거 (Drive URL만 유지)
+// 로컬: members(사진 없음) + relations + nextId + photos(Base64 포함)
 function saveToLocal(){
-  const safe = JSON.parse(JSON.stringify({members,relations,nextId}));
-  Object.values(safe.members).forEach(m=>{
-    if(m.photo     && m.photo.startsWith('data:'))     m.photo     = null;
-    if(m.photo_url && m.photo_url.startsWith('data:')) m.photo_url = null;
+  const membersNoPhoto = {};
+  Object.values(members).forEach(m => {
+    membersNoPhoto[m.id] = {id:m.id,name:m.name,birth:m.birth,gender:m.gender,memo:m.memo};
   });
-  localStorage.setItem(LS_DATA, JSON.stringify(safe));
+  localStorage.setItem(LS_DATA, JSON.stringify({
+    members:   membersNoPhoto,
+    relations: relations,
+    nextId:    nextId,
+    photos:    photos
+  }));
 }
+
 function loadFromLocal(){
-  const raw=localStorage.getItem(LS_DATA);
+  const raw = localStorage.getItem(LS_DATA);
   if(raw){
     try{
-      const parsed=JSON.parse(raw);
-      // 로컬에 혹시 남은 Base64 제거 후 applyData
-      if(parsed.members){
-        Object.values(parsed.members).forEach(m=>{
-          if(m.photo     && m.photo.startsWith('data:'))     m.photo     = null;
-          if(m.photo_url && m.photo_url.startsWith('data:')) m.photo_url = null;
-        });
-      }
-      applyData(parsed);
+      applyData(JSON.parse(raw));
       setSyncStatus('idle','로컬 데이터');
-    }catch(e){}
+    } catch(e){}
   }
   hideLoading();
 }
@@ -777,8 +778,9 @@ function openEditModal(id){
   document.getElementById('f-birth').value=m.birth||'';
   document.getElementById('f-gender').value=m.gender||'';
   document.getElementById('f-memo').value=m.memo||'';
-  const rawPhoto=m.photo_url||m.photo||'';
-  resetPhotoEditor(getValidImageUrl(rawPhoto));
+  // photos 딕셔너리에서 Base64 가져오기
+  const existingPhoto = photos[id] || m.photo || null;
+  resetPhotoEditor(existingPhoto);
   document.getElementById('modal-backdrop').style.display='flex';
 }
 function clearForm(){
@@ -793,21 +795,21 @@ function saveModal(){
   if(!name){toast('이름을 입력해주세요.');return;}
   const birth=document.getElementById('f-birth').value,gender=document.getElementById('f-gender').value,memo=document.getElementById('f-memo').value.trim();
 
-  // 새로 선택한 사진(Base64)만 가져옴. null이면 사진 변경 없음
+  // 새로 선택한 사진(Base64). null이면 변경 없음
   const newPhotoBase64 = getCroppedBase64();
 
   if(modalMode.action==='edit'){
     const m=members[modalMode.editId];
     m.name=name; m.birth=birth; m.gender=gender; m.memo=memo;
-    // 새 사진 선택했을 때만 덮어씀 (기존 Drive URL 보호)
-    if(newPhotoBase64){ m.photo=newPhotoBase64; m.photo_url=newPhotoBase64; }
+    if(newPhotoBase64){
+      photos[m.id] = newPhotoBase64; // photos 딕셔너리에 저장
+      m.photo = newPhotoBase64;
+    }
     toast(`${name} 정보가 수정되었습니다.`);
   }else{
     const id='p'+nextId++;
-    members[id]={id,name,birth,gender,memo,
-      photo:    newPhotoBase64||null,
-      photo_url:newPhotoBase64||null
-    };
+    members[id]={id,name,birth,gender,memo,photo:newPhotoBase64||null};
+    if(newPhotoBase64) photos[id] = newPhotoBase64;
     relations.push({type:'category',from:currentTree,to:id});
     if(modalMode.action==='child' &&modalMode.relId)relations.push({type:'parent',from:modalMode.relId,to:id});
     else if(modalMode.action==='spouse'&&modalMode.relId)relations.push({type:'spouse',from:modalMode.relId,to:id});
@@ -820,7 +822,7 @@ function saveModal(){
 function deleteMember(id){
   const m=members[id];if(!m)return;
   if(!confirm(`"${m.name}" 을(를) 삭제할까요?\n관련 관계도 모두 삭제됩니다.`))return;
-  delete members[id];delete positions[id];
+  delete members[id]; delete positions[id]; delete photos[id];
   relations=relations.filter(r=>r.from!==id&&r.to!==id);
   if(selectedId===id)selectedId=null;
   render();scheduleSave();toast(`${m.name} 이(가) 삭제되었습니다.`);
