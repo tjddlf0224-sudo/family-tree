@@ -471,8 +471,22 @@ async function saveToGAS(){
     });
     const json=await res.json();
     if(json.ok){
-      if(json.data) applyData(json.data);
-      saveToLocal();
+      // ✅ GAS가 Base64→Drive URL로 교체한 데이터를 받아서 적용
+      // applyData는 render()를 호출하므로 사진이 URL로 즉시 반영됨
+      if(json.data){
+        // members의 photo 필드를 GAS 반환값으로 교체 (URL 보장)
+        const gasMembers = json.data.members || {};
+        Object.keys(gasMembers).forEach(id => {
+          if(members[id]){
+            const url = gasMembers[id].photo_url || gasMembers[id].photo || null;
+            if(url && !url.startsWith('data:')){
+              members[id].photo     = url;
+              members[id].photo_url = url;
+            }
+          }
+        });
+      }
+      saveToLocal(); // ← URL로 교체된 뒤 로컬 저장
       setSyncStatus('saved','저장 완료 ✓');
       setTimeout(()=>setSyncStatus('saved','클라우드 연결됨'),2000);
     }else{ setSyncStatus('error','저장 실패'); }
