@@ -31,6 +31,9 @@
   --spouse-line: #d4916a;
   --card-w: 140px;
   --card-h: 200px;
+  /* ✅ 툴바 두 줄 + 탭 높이 */
+  --toolbar-h: 90px;
+  --tabs-h: 44px;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 
@@ -38,7 +41,7 @@ body {
   font-family: 'Noto Sans KR', sans-serif;
   background: var(--bg);
   color: var(--text);
-  min-height: 100dvh; 
+  min-height: 100dvh;
   height: 100dvh;
   overflow: hidden;
   overscroll-behavior-y: none;
@@ -46,153 +49,207 @@ body {
   user-select: none;
 }
 
-#toolbar{
-  position:fixed;top:0;left:0;right:0;z-index:100;
-  display:flex;align-items:center;gap:8px;
-  padding:10px 16px;
-  padding-top: calc(10px + env(safe-area-inset-top));
-  background:var(--surface);
-  border-bottom:1.5px solid var(--border);
-  box-shadow:0 2px 12px var(--shadow);
+/* ── TOOLBAR: 두 줄 구성 ── */
+#toolbar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  display: flex; flex-direction: column;
+  padding-top: env(safe-area-inset-top);
+  background: var(--surface);
+  border-bottom: 1.5px solid var(--border);
+  box-shadow: 0 2px 12px var(--shadow);
 }
-.toolbar-title{font-family:'Noto Serif KR',serif;font-size:17px;font-weight:700;color:var(--accent);letter-spacing:1px;white-space:nowrap;margin-right:4px;}
-.tb-btn{display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text);font-size:12px;font-family:'Noto Sans KR',sans-serif;cursor:pointer;white-space:nowrap;transition:all .18s;font-weight:500;}
-.tb-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent);}
-.tb-btn.primary{background:var(--accent);color:#fff;border-color:var(--accent);}
-.tb-btn.primary:hover{background:var(--accent2);border-color:var(--accent2);}
-.tb-sep{width:1px;height:28px;background:var(--border);margin:0 2px;flex-shrink:0;}
-.zoom-display{font-size:12px;color:var(--text2);min-width:40px;text-align:center;}
-.spacer{flex:1;}
-.tb-btn svg{width:14px;height:14px;flex-shrink:0;}
-#sync-status{font-size:11px;padding:4px 10px;border-radius:20px;border:1.5px solid var(--border);white-space:nowrap;display:flex;align-items:center;gap:5px;transition:all .3s;}
-#sync-status.idle{background:var(--bg);color:var(--text3);}
-#sync-status.saving{background:#fff8e0;color:#a07010;border-color:#e0c060;}
-#sync-status.saved{background:#e8f5e8;color:#2a8a2a;border-color:#90c890;}
-#sync-status.error{background:#fdecea;color:#c0392b;border-color:#e08080;}
-#sync-status.loading{background:#e8f0ff;color:#2255bb;border-color:#8899dd;}
-.sync-dot{width:7px;height:7px;border-radius:50%;background:currentColor;flex-shrink:0;}
+.tb-row {
+  display: flex; align-items: center; gap: 6px;
+  padding: 7px 12px;
+  min-height: 44px;
+}
+.tb-row-1 { border-bottom: 1px solid var(--border2); }
 
+.toolbar-title {
+  font-family: 'Noto Serif KR', serif; font-size: 16px; font-weight: 700;
+  color: var(--accent); letter-spacing: 1px; white-space: nowrap; margin-right: 2px;
+  flex-shrink: 0;
+}
+.tb-btn {
+  display: flex; align-items: center; gap: 4px;
+  padding: 6px 10px; border-radius: 8px;
+  border: 1.5px solid var(--border);
+  background: var(--surface2); color: var(--text);
+  font-size: 12px; font-family: 'Noto Sans KR', sans-serif;
+  cursor: pointer; white-space: nowrap; transition: all .18s; font-weight: 500;
+  flex-shrink: 0;
+}
+.tb-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+.tb-btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.tb-btn.primary:hover { background: var(--accent2); border-color: var(--accent2); }
+.tb-sep { width: 1px; height: 24px; background: var(--border); margin: 0 1px; flex-shrink: 0; }
+.zoom-display { font-size: 12px; color: var(--text2); min-width: 38px; text-align: center; flex-shrink: 0; }
+.spacer { flex: 1; }
+.tb-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+#sync-status {
+  font-size: 11px; padding: 4px 8px; border-radius: 20px;
+  border: 1.5px solid var(--border); white-space: nowrap;
+  display: flex; align-items: center; gap: 4px;
+  transition: all .3s; flex-shrink: 0;
+}
+#sync-status.idle { background: var(--bg); color: var(--text3); }
+#sync-status.saving { background: #fff8e0; color: #a07010; border-color: #e0c060; }
+#sync-status.saved { background: #e8f5e8; color: #2a8a2a; border-color: #90c890; }
+#sync-status.error { background: #fdecea; color: #c0392b; border-color: #e08080; }
+#sync-status.loading { background: #e8f0ff; color: #2255bb; border-color: #8899dd; }
+.sync-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+
+/* ── TABS ── */
 #tree-tabs {
-  position:fixed; top:calc(52px + env(safe-area-inset-top)); left:0; right:0; z-index:95;
-  display:flex; background:var(--surface2);
-  border-bottom:1.5px solid var(--border);
+  position: fixed;
+  top: calc(var(--toolbar-h) + env(safe-area-inset-top));
+  left: 0; right: 0; z-index: 95;
+  display: flex; background: var(--surface2);
+  border-bottom: 1.5px solid var(--border);
   box-shadow: 0 2px 8px var(--shadow);
 }
 .tree-tab {
-  flex:1; text-align:center; padding:12px 0; font-size:13.5px;
-  font-family:'Noto Sans KR',sans-serif; font-weight:500;
-  color:var(--text3); cursor:pointer; 
-  transition:all .2s; border-bottom: 3px solid transparent;
+  flex: 1; text-align: center; padding: 12px 0; font-size: 13.5px;
+  font-family: 'Noto Sans KR', sans-serif; font-weight: 500;
+  color: var(--text3); cursor: pointer;
+  transition: all .2s; border-bottom: 3px solid transparent;
 }
-.tree-tab.active {
-  color:var(--accent); font-weight:700; border-bottom-color: var(--accent);
+.tree-tab.active { color: var(--accent); font-weight: 700; border-bottom-color: var(--accent); }
+
+/* ── SETUP BANNER ── */
+#setup-banner {
+  position: fixed;
+  top: calc(var(--toolbar-h) + var(--tabs-h) + env(safe-area-inset-top));
+  left: 0; right: 0; z-index: 90;
+  background: linear-gradient(135deg, #fff8e0, #fef8f0);
+  border-bottom: 2px solid #e0c060;
+  padding: 10px 18px;
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
 }
+#setup-banner.hidden { display: none; }
+.setup-text { font-size: 12.5px; color: #6b4a10; flex: 1; min-width: 200px; }
+.setup-text b { color: #8b5010; }
+.setup-input {
+  padding: 6px 10px; border-radius: 8px; border: 1.5px solid #c8a840;
+  background: #fff; font-size: 16px; font-family: 'Noto Sans KR', sans-serif;
+  width: 360px; max-width: 100%; outline: none; color: #333;
+}
+.setup-input:focus { border-color: var(--accent); }
 
-#setup-banner{position:fixed;top:calc(96px + env(safe-area-inset-top));left:0;right:0;z-index:90;background:linear-gradient(135deg,#fff8e0,#fef8f0);border-bottom:2px solid #e0c060;padding:10px 18px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
-#setup-banner.hidden{display:none;}
-.setup-text{font-size:12.5px;color:#6b4a10;flex:1;min-width:200px;}
-.setup-text b{color:#8b5010;}
-.setup-input{padding:6px 10px;border-radius:8px;border:1.5px solid #c8a840;background:#fff;font-size:16px;font-family:'Noto Sans KR',sans-serif;width:360px;max-width:100%;outline:none;color:#333;}
-.setup-input:focus{border-color:var(--accent);}
-
-#canvas-wrap{
-  position:fixed;top:calc(96px + env(safe-area-inset-top));left:0;right:0;bottom:0;
-  overflow:hidden;cursor:grab;
+/* ── CANVAS ── */
+#canvas-wrap {
+  position: fixed;
+  top: calc(var(--toolbar-h) + var(--tabs-h) + env(safe-area-inset-top));
+  left: 0; right: 0; bottom: 0;
+  overflow: hidden; cursor: grab;
   touch-action: none;
   background:
-    radial-gradient(circle at 20% 80%,rgba(196,168,112,.08) 0%,transparent 50%),
-    radial-gradient(circle at 80% 20%,rgba(176,96,128,.05) 0%,transparent 50%),
-    repeating-linear-gradient(0deg,transparent,transparent 39px,rgba(196,168,112,.12) 39px,rgba(196,168,112,.12) 40px),
-    repeating-linear-gradient(90deg,transparent,transparent 39px,rgba(196,168,112,.12) 39px,rgba(196,168,112,.12) 40px),
+    radial-gradient(circle at 20% 80%, rgba(196,168,112,.08) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(176,96,128,.05) 0%, transparent 50%),
+    repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(196,168,112,.12) 39px, rgba(196,168,112,.12) 40px),
+    repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(196,168,112,.12) 39px, rgba(196,168,112,.12) 40px),
     var(--bg);
-  transition:top .2s;
+  transition: top .2s;
 }
-#canvas-wrap.with-banner{top:calc(144px + env(safe-area-inset-top));}
-#canvas-wrap.grabbing{cursor:grabbing;}
-#canvas{position:absolute;transform-origin:0 0;}
-#lines-svg{position:absolute;top:0;left:0;pointer-events:none;overflow:visible;}
-.line-parent{stroke:var(--line);stroke-width:2.5;fill:none;stroke-linecap:round;}
-.line-spouse{stroke:var(--spouse-line);stroke-width:2.5;fill:none;stroke-dasharray:6 4;stroke-linecap:round;}
-
-.node{position:absolute;width:var(--card-w);cursor:pointer;transition:filter .2s;}
-.node:hover{filter:drop-shadow(0 4px 16px rgba(139,94,60,.35));}
-.node-inner{width:100%;background:var(--surface2);border-radius:14px;border:2px solid var(--border);overflow:hidden;box-shadow:0 2px 10px var(--shadow);transition:border-color .2s,box-shadow .2s;}
-.node.male .node-inner{border-color:#a8c8e0;}
-.node.female .node-inner{border-color:#e0a8c0;}
-.node.selected .node-inner{border-color:var(--accent);box-shadow:0 0 0 3px rgba(139,94,60,.2),0 4px 16px var(--shadow);}
-
-.node-photo{width:100%; aspect-ratio: 1/1; object-fit:cover; display:block; background:var(--bg); pointer-events: none;}
-.node-photo-placeholder{width:100%; aspect-ratio: 1/1; display:flex; align-items:center; justify-content:center; font-size:36px; background:linear-gradient(135deg,var(--bg),var(--border2)); pointer-events: none;}
-.node.male .node-photo-placeholder{background:linear-gradient(135deg,#ddeef8,#b8d4e8);}
-.node.female .node-photo-placeholder{background:linear-gradient(135deg,#f8dde8,#e8b8c8);}
-
-.node-info{padding:8px 8px 10px; pointer-events: none;}
-.node-name{font-family:'Noto Serif KR',serif;font-size:13px;font-weight:600;text-align:center;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.node-birth{font-size:10px;color:var(--text3);text-align:center;margin-top:2px;}
-.node-gender-dot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:4px;vertical-align:middle;}
-.node.male .node-gender-dot{background:var(--male);}
-.node.female .node-gender-dot{background:var(--female);}
-.node-actions{position:absolute;bottom:-38px;left:50%;transform:translateX(-50%);background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:4px;gap:2px;display:none;align-items:center;box-shadow:0 4px 12px var(--shadow);white-space:nowrap;z-index:10;}
-.node.selected .node-actions{display:flex;}
-.node-act-btn{padding:5px 8px;border:none;background:transparent;font-size:12px;color:var(--text2);cursor:pointer;border-radius:6px;transition:background .15s,color .15s;font-family:'Noto Sans KR',sans-serif;}
-.node-act-btn:hover{background:var(--accent);color:#fff;}
-.node-act-btn.del:hover{background:#c0392b;color:#fff;}
-
-.modal-backdrop{position:fixed;inset:0;z-index:200;background:rgba(44,32,16,.45);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:16px;}
-.modal{background:var(--surface2);border-radius:18px;border:2px solid var(--border);box-shadow:0 8px 40px rgba(44,32,16,.25);width:100%;max-width:420px;max-height:90dvh;overflow-y:auto;}
-.modal-header{padding:18px 20px 12px;border-bottom:1.5px solid var(--border2);display:flex;align-items:center;justify-content:space-between;}
-.modal-title{font-family:'Noto Serif KR',serif;font-size:16px;font-weight:700;color:var(--accent);}
-.modal-close{width:30px;height:30px;border-radius:50%;border:none;background:var(--bg);color:var(--text2);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;}
-.modal-body{padding:16px 20px 20px;display:flex;flex-direction:column;gap:14px;}
-.form-group{display:flex;flex-direction:column;gap:5px;}
-.form-label{font-size:12px;font-weight:500;color:var(--text2);}
-
-.form-input,.form-select,.form-textarea{
-  padding:10px 12px;border-radius:9px;border:1.5px solid var(--border);background:var(--surface);
-  color:var(--text);font-family:'Noto Sans KR',sans-serif;outline:none;
-  font-size: 16px !important; 
+#canvas-wrap.with-banner {
+  top: calc(var(--toolbar-h) + var(--tabs-h) + 54px + env(safe-area-inset-top));
 }
-.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--accent);}
-.form-textarea{resize:vertical;min-height:60px;}
-.form-row{display:flex;gap:10px;}
-.form-row .form-group{flex:1;}
-.modal-footer{padding:10px 20px 16px;display:flex;gap:8px;justify-content:flex-end;border-top:1.5px solid var(--border2);}
-.btn{padding:10px 18px;border-radius:9px;border:1.5px solid var(--border);font-size:14px;font-family:'Noto Sans KR',sans-serif;cursor:pointer;font-weight:600;}
-.btn-cancel{background:var(--surface);color:var(--text2);}
-.btn-save{background:var(--accent);color:#fff;border-color:var(--accent);}
+#canvas-wrap.grabbing { cursor: grabbing; }
+#canvas { position: absolute; transform-origin: 0 0; }
+#lines-svg { position: absolute; top: 0; left: 0; pointer-events: none; overflow: visible; }
+.line-parent { stroke: var(--line); stroke-width: 2.5; fill: none; stroke-linecap: round; }
+.line-spouse { stroke: var(--spouse-line); stroke-width: 2.5; fill: none; stroke-dasharray: 6 4; stroke-linecap: round; }
 
-#legend{position:fixed;bottom:calc(16px + env(safe-area-inset-bottom));left:16px;z-index:100;background:var(--surface2);border:1.5px solid var(--border);border-radius:12px;padding:10px 14px;box-shadow:0 4px 16px var(--shadow);font-size:11px;color:var(--text2);}
-.legend-item{display:flex;align-items:center;gap:6px;margin-bottom:3px;}
-.legend-line{width:24px;height:2px;border-radius:1px;}
-.legend-line.parent{background:var(--line);}
-.legend-line.spouse{background:transparent;border-top:2px dashed var(--spouse-line);}
+/* ── NODE ── */
+.node { position: absolute; width: var(--card-w); cursor: pointer; transition: filter .2s; }
+.node:hover { filter: drop-shadow(0 4px 16px rgba(139,94,60,.35)); }
+.node-inner { width: 100%; background: var(--surface2); border-radius: 14px; border: 2px solid var(--border); overflow: hidden; box-shadow: 0 2px 10px var(--shadow); transition: border-color .2s, box-shadow .2s; }
+.node.male .node-inner { border-color: #a8c8e0; }
+.node.female .node-inner { border-color: #e0a8c0; }
+.node.selected .node-inner { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(139,94,60,.2), 0 4px 16px var(--shadow); }
 
-#help-panel{position:fixed;bottom:calc(16px + env(safe-area-inset-bottom));right:16px;z-index:100;background:var(--surface2);border:1.5px solid var(--border);border-radius:14px;padding:14px 16px;box-shadow:0 4px 20px var(--shadow);font-size:11.5px;color:var(--text2);max-width:230px;line-height:1.7;}
-#help-panel.hidden{opacity:0;pointer-events:none;}
-#help-panel h4{font-family:'Noto Serif KR',serif;font-size:13px;color:var(--accent);margin-bottom:8px;}
-.help-row{display:flex;gap:6px;align-items:flex-start;margin-bottom:2px;}
+.node-photo { width: 100%; aspect-ratio: 1/1; object-fit: cover; display: block; background: var(--bg); pointer-events: none; }
+.node-photo-placeholder { width: 100%; aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center; font-size: 36px; pointer-events: none; }
+.node.male .node-photo-placeholder { background: linear-gradient(135deg, #ddeef8, #b8d4e8); }
+.node.female .node-photo-placeholder { background: linear-gradient(135deg, #f8dde8, #e8b8c8); }
+.node-photo-placeholder:not(.node.male):not(.node.female) { background: linear-gradient(135deg, var(--bg), var(--border2)); }
 
-#ctx-menu{position:fixed;z-index:300;background:var(--surface2);border:1.5px solid var(--border);border-radius:11px;padding:6px;box-shadow:0 6px 24px var(--shadow);min-width:170px;display:none;}
-#ctx-menu .ctx-item{padding:9px 12px;border-radius:7px;font-size:13.5px;cursor:pointer;color:var(--text);display:flex;align-items:center;gap:8px;}
-#ctx-menu .ctx-item.danger{color:#c0392b;}
-#ctx-menu .ctx-sep{height:1px;background:var(--border2);margin:4px 0;}
+.node-info { padding: 8px 8px 10px; pointer-events: none; }
+.node-name { font-family: 'Noto Serif KR', serif; font-size: 13px; font-weight: 600; text-align: center; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.node-birth { font-size: 10px; color: var(--text3); text-align: center; margin-top: 2px; }
+.node-gender-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; margin-right: 4px; vertical-align: middle; }
+.node.male .node-gender-dot { background: var(--male); }
+.node.female .node-gender-dot { background: var(--female); }
 
-#toast{position:fixed;bottom:calc(16px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%) translateY(80px);z-index:300;background:var(--text);color:#fff;padding:9px 18px;border-radius:10px;font-size:12.5px;opacity:0;transition:transform .3s,opacity .3s;white-space:nowrap;}
-#toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+.node-actions { position: absolute; bottom: -38px; left: 50%; transform: translateX(-50%); background: var(--surface2); border: 1.5px solid var(--border); border-radius: 10px; padding: 4px; gap: 2px; display: none; align-items: center; box-shadow: 0 4px 12px var(--shadow); white-space: nowrap; z-index: 10; }
+.node.selected .node-actions { display: flex; }
+.node-act-btn { padding: 5px 8px; border: none; background: transparent; font-size: 12px; color: var(--text2); cursor: pointer; border-radius: 6px; transition: background .15s, color .15s; font-family: 'Noto Sans KR', sans-serif; }
+.node-act-btn:hover { background: var(--accent); color: #fff; }
+.node-act-btn.del:hover { background: #c0392b; color: #fff; }
 
-#loading-overlay{position:fixed;inset:0;z-index:400;background:rgba(245,240,232,.85);backdrop-filter:blur(4px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;}
-#loading-overlay.hidden{display:none;}
-.loader{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;}
-@keyframes spin{to{transform:rotate(360deg);}}
-.loading-text{font-family:'Noto Serif KR',serif;font-size:15px;color:var(--accent);}
+/* ── MODAL ── */
+.modal-backdrop { position: fixed; inset: 0; z-index: 200; background: rgba(44,32,16,.45); backdrop-filter: blur(3px); display: flex; align-items: center; justify-content: center; padding: 16px; }
+.modal { background: var(--surface2); border-radius: 18px; border: 2px solid var(--border); box-shadow: 0 8px 40px rgba(44,32,16,.25); width: 100%; max-width: 420px; max-height: 90dvh; overflow-y: auto; }
+.modal-header { padding: 18px 20px 12px; border-bottom: 1.5px solid var(--border2); display: flex; align-items: center; justify-content: space-between; }
+.modal-title { font-family: 'Noto Serif KR', serif; font-size: 16px; font-weight: 700; color: var(--accent); }
+.modal-close { width: 30px; height: 30px; border-radius: 50%; border: none; background: var(--bg); color: var(--text2); cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; }
+.modal-body { padding: 16px 20px 20px; display: flex; flex-direction: column; gap: 14px; }
+.form-group { display: flex; flex-direction: column; gap: 5px; }
+.form-label { font-size: 12px; font-weight: 500; color: var(--text2); }
+.form-input, .form-select, .form-textarea {
+  padding: 10px 12px; border-radius: 9px; border: 1.5px solid var(--border);
+  background: var(--surface); color: var(--text);
+  font-family: 'Noto Sans KR', sans-serif; outline: none;
+  font-size: 16px !important;
+}
+.form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--accent); }
+.form-textarea { resize: vertical; min-height: 60px; }
+.form-row { display: flex; gap: 10px; }
+.form-row .form-group { flex: 1; }
+.modal-footer { padding: 10px 20px 16px; display: flex; gap: 8px; justify-content: flex-end; border-top: 1.5px solid var(--border2); }
+.btn { padding: 10px 18px; border-radius: 9px; border: 1.5px solid var(--border); font-size: 14px; font-family: 'Noto Sans KR', sans-serif; cursor: pointer; font-weight: 600; }
+.btn-cancel { background: var(--surface); color: var(--text2); }
+.btn-save { background: var(--accent); color: #fff; border-color: var(--accent); }
 
-@media(max-width:600px){
-  .toolbar-title{font-size:14px;}
-  .tb-btn span{display:none;}
-  .tb-btn{padding:8px;}
-  #help-panel{display:none;}
-  :root{--card-w:120px;--card-h:185px;}
-  .setup-input{width:100%;}
+/* ── LEGEND ── */
+#legend { position: fixed; bottom: calc(16px + env(safe-area-inset-bottom)); left: 16px; z-index: 100; background: var(--surface2); border: 1.5px solid var(--border); border-radius: 12px; padding: 10px 14px; box-shadow: 0 4px 16px var(--shadow); font-size: 11px; color: var(--text2); }
+.legend-item { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; }
+.legend-item:last-child { margin-bottom: 0; }
+.legend-line { width: 24px; height: 2px; border-radius: 1px; }
+.legend-line.parent { background: var(--line); }
+.legend-line.spouse { background: transparent; border-top: 2px dashed var(--spouse-line); }
+
+/* ── HELP ── */
+#help-panel { position: fixed; bottom: calc(16px + env(safe-area-inset-bottom)); right: 16px; z-index: 100; background: var(--surface2); border: 1.5px solid var(--border); border-radius: 14px; padding: 14px 16px; box-shadow: 0 4px 20px var(--shadow); font-size: 11.5px; color: var(--text2); max-width: 230px; line-height: 1.7; }
+#help-panel.hidden { opacity: 0; pointer-events: none; }
+#help-panel h4 { font-family: 'Noto Serif KR', serif; font-size: 13px; color: var(--accent); margin-bottom: 8px; }
+.help-row { display: flex; gap: 6px; align-items: flex-start; margin-bottom: 2px; }
+
+/* ── CTX MENU ── */
+#ctx-menu { position: fixed; z-index: 300; background: var(--surface2); border: 1.5px solid var(--border); border-radius: 11px; padding: 6px; box-shadow: 0 6px 24px var(--shadow); min-width: 170px; display: none; }
+#ctx-menu .ctx-item { padding: 9px 12px; border-radius: 7px; font-size: 13.5px; cursor: pointer; color: var(--text); display: flex; align-items: center; gap: 8px; }
+#ctx-menu .ctx-item.danger { color: #c0392b; }
+#ctx-menu .ctx-sep { height: 1px; background: var(--border2); margin: 4px 0; }
+
+/* ── TOAST ── */
+#toast { position: fixed; bottom: calc(16px + env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%) translateY(80px); z-index: 300; background: var(--text); color: #fff; padding: 9px 18px; border-radius: 10px; font-size: 12.5px; opacity: 0; transition: transform .3s, opacity .3s; white-space: nowrap; }
+#toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+/* ── LOADING ── */
+#loading-overlay { position: fixed; inset: 0; z-index: 400; background: rgba(245,240,232,.85); backdrop-filter: blur(4px); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; }
+#loading-overlay.hidden { display: none; }
+.loader { width: 40px; height: 40px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-text { font-family: 'Noto Serif KR', serif; font-size: 15px; color: var(--accent); }
+
+@media (max-width: 600px) {
+  .toolbar-title { font-size: 14px; }
+  .tb-btn span { display: none; }
+  .tb-btn { padding: 6px 8px; }
+  #help-panel { display: none; }
+  :root { --card-w: 120px; --card-h: 185px; }
+  .setup-input { width: 100%; }
 }
 </style>
 </head>
@@ -203,34 +260,41 @@ body {
   <div class="loading-text">가계도 불러오는 중...</div>
 </div>
 
+<!-- ✅ 두 줄 툴바 -->
 <div id="toolbar">
-  <div class="toolbar-title">🌳 가계도</div>
-  <button class="tb-btn primary" onclick="openAddModal(null,'root')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-    <span>인물 추가</span>
-  </button>
-  <div class="tb-sep"></div>
-  <button class="tb-btn" onclick="zoom(0.15)">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
-  </button>
-  <div class="zoom-display" id="zoom-display">100%</div>
-  <button class="tb-btn" onclick="zoom(-0.15)">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
-  </button>
-  <button class="tb-btn" onclick="fitView()">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
-    <span>맞춤</span>
-  </button>
-  <div class="spacer"></div>
-  <div id="sync-status" class="idle"><div class="sync-dot"></div><span id="sync-text">연결 안됨</span></div>
-  <button class="tb-btn" onclick="manualSave()" title="지금 저장">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-    <span>저장</span>
-  </button>
-  <button class="tb-btn" onclick="toggleHelp()">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-    <span>도움말</span>
-  </button>
+  <!-- 1줄: 타이틀 + 인물추가 + 줌 컨트롤 + 맞춤 -->
+  <div class="tb-row tb-row-1">
+    <div class="toolbar-title">🌳 가계도</div>
+    <button class="tb-btn primary" onclick="openAddModal(null,'root')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      <span>인물 추가</span>
+    </button>
+    <div class="tb-sep"></div>
+    <button class="tb-btn" onclick="zoom(0.15)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+    </button>
+    <div class="zoom-display" id="zoom-display">100%</div>
+    <button class="tb-btn" onclick="zoom(-0.15)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+    </button>
+    <button class="tb-btn" onclick="fitView()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+      <span>맞춤</span>
+    </button>
+  </div>
+  <!-- 2줄: 동기화 상태 + 저장 + 도움말 -->
+  <div class="tb-row">
+    <div id="sync-status" class="idle"><div class="sync-dot"></div><span id="sync-text">연결 안됨</span></div>
+    <div class="spacer"></div>
+    <button class="tb-btn" onclick="manualSave()" title="지금 저장">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+      <span>저장</span>
+    </button>
+    <button class="tb-btn" onclick="toggleHelp()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <span>도움말</span>
+    </button>
+  </div>
 </div>
 
 <div id="tree-tabs">
@@ -285,7 +349,7 @@ body {
     <div class="modal-body">
       
       <div class="form-group" style="text-align: center; margin-bottom: 5px;">
-        <div style="width: 100px; height: 100px; border-radius: 12px; border: 2px dashed #d4c8b0; overflow: hidden; position: relative; margin: 0 auto; background: #fff; touch-action: none;">
+        <div id="photo-box" style="width: 100px; height: 100px; border-radius: 12px; border: 2px dashed #d4c8b0; overflow: hidden; position: relative; margin: 0 auto; background: #fff; touch-action: none;">
           <input type="file" id="modal-photo-upload" accept="image/*" style="display:none;">
           <img id="modal-photo-preview" style="position: absolute; cursor: grab; transform-origin: top left; display: none; left: 0; top: 0; pointer-events: none;">
           <div id="modal-photo-placeholder" onclick="document.getElementById('modal-photo-upload').click()" style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:12px; color:#a0906e; font-weight: 600;">사진 등록</div>
@@ -331,35 +395,30 @@ body {
 const LS_DATA = 'familytree_data';
 const LS_URL  = 'familytree_gas_url';
 
-let GAS_URL   = 'https://script.google.com/macros/s/AKfycbyNwQiL3UW_-5NFSLzAmgEORNbKD_eHdu9BlGWTHzYynSfvletb3LNFI9FMm-QPY85d/exec';
+let GAS_URL = 'https://script.google.com/macros/s/AKfycbyNwQiL3UW_-5NFSLzAmgEORNbKD_eHdu9BlGWTHzYynSfvletb3LNFI9FMm-QPY85d/exec';
 
 let members={}, relations=[], nextId=1, positions={};
-let tx=60,ty=80,scale=1;
-let dragging=false,lastMx=0,lastMy=0;
-let selectedId=null,modalMode=null;
+let tx=60, ty=80, scale=1;
+let dragging=false, lastMx=0, lastMy=0;
+let selectedId=null, modalMode=null;
 let saveTimer=null;
-const CW=140,CH=200,HG=50,VG=90;
+const CW=140, CH=200, HG=50, VG=90;
 
 let currentTree = '친가';
 let visibleMembers = {};
 let visibleRelations = [];
 
-// ✨ 구글 드라이브 URL 자동 변환기 (엑스박스 방지용)
+// ── 구글 드라이브 URL 자동 변환 ──
 function getValidImageUrl(url) {
   if (!url) return '';
-  if (url.startsWith('data:')) return url; // Base64 그대로 통과
-  
-  // 구글 드라이브 링크인 경우 (공유 링크 -> 이미지 다이렉트 링크로 변환)
+  if (url.startsWith('data:')) return url;
   if (url.includes('drive.google.com')) {
     let id = null;
     const match1 = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
     const match2 = url.match(/id=([a-zA-Z0-9_-]+)/);
     if (match1) id = match1[1];
     else if (match2) id = match2[1];
-    
-    if (id) {
-      return `https://drive.google.com/uc?export=view&id=${id}`;
-    }
+    if (id) return `https://drive.google.com/uc?export=view&id=${id}`;
   }
   return url;
 }
@@ -378,7 +437,6 @@ function dismissBanner(){
   document.getElementById('setup-banner').classList.add('hidden');
   document.getElementById('canvas-wrap').classList.remove('with-banner');
 }
-
 function setSyncStatus(state,text){
   const el=document.getElementById('sync-status');
   el.className=state; document.getElementById('sync-text').textContent=text;
@@ -396,8 +454,7 @@ async function loadFromGAS(){
       toast('☁️ 가계도를 불러왔습니다.');
     }else{loadFromLocal();setSyncStatus('error','불러오기 실패');}
   }catch(e){
-    loadFromLocal();
-    setSyncStatus('error','오프라인');
+    loadFromLocal(); setSyncStatus('error','오프라인');
   }
   hideLoading();
 }
@@ -414,16 +471,13 @@ async function saveToGAS(){
     });
     const json=await res.json();
     if(json.ok){
-      if(json.data) applyData(json.data); 
+      if(json.data) applyData(json.data);
       saveToLocal();
       setSyncStatus('saved','저장 완료 ✓');
       setTimeout(()=>setSyncStatus('saved','클라우드 연결됨'),2000);
-    }else{
-      setSyncStatus('error','저장 실패');
-    }
+    }else{ setSyncStatus('error','저장 실패'); }
   }catch(e){
-    saveToLocal();
-    setSyncStatus('error','오프라인 저장');
+    saveToLocal(); setSyncStatus('error','오프라인 저장');
   }
 }
 
@@ -440,20 +494,19 @@ function loadFromLocal(){
 }
 function scheduleSave(){clearTimeout(saveTimer);setSyncStatus('saving','변경 감지...');saveTimer=setTimeout(()=>saveToGAS(),3000);}
 function manualSave(){clearTimeout(saveTimer);saveToGAS();}
-
 function showLoading(){document.getElementById('loading-overlay').classList.remove('hidden');}
 function hideLoading(){document.getElementById('loading-overlay').classList.add('hidden');}
 
 // ═══════════════════════════════════════
 // TABS & CANVAS
 // ═══════════════════════════════════════
-function switchTree(treeName) {
-  currentTree = treeName;
-  document.querySelectorAll('.tree-tab').forEach(el => {
-    el.classList.toggle('active', el.textContent === treeName);
+function switchTree(treeName){
+  currentTree=treeName;
+  document.querySelectorAll('.tree-tab').forEach(el=>{
+    el.classList.toggle('active',el.textContent===treeName);
   });
-  selectedId = null; tx = 60; ty = 80; scale = 1; render();
-  setTimeout(fitView, 50);
+  selectedId=null; tx=60; ty=80; scale=1; render();
+  setTimeout(fitView,50);
 }
 
 const wrap=document.getElementById('canvas-wrap');
@@ -471,11 +524,11 @@ wrap.addEventListener('wheel',e=>{
 
 let touches={};
 wrap.addEventListener('touchstart',e=>{
-  if(e.target.closest('.node-actions')) return;
+  if(e.target.closest('.node-actions'))return;
   [...e.changedTouches].forEach(t=>touches[t.identifier]={x:t.clientX,y:t.clientY});
 },{passive:false});
 wrap.addEventListener('touchmove',e=>{
-  if(e.target.closest('.node-actions')) return;
+  if(e.target.closest('.node-actions'))return;
   e.preventDefault();
   if(Object.keys(touches).length===1){
     const t=e.changedTouches[0],p=touches[t.identifier];
@@ -495,13 +548,13 @@ wrap.addEventListener('touchmove',e=>{
   }
 },{passive:false});
 wrap.addEventListener('touchend',e=>{[...e.changedTouches].forEach(t=>delete touches[t.identifier]);});
-wrap.addEventListener('touchcancel',e=>{[...e.changedTouches].forEach(t=>delete touches[t.identifier]);}); 
+wrap.addEventListener('touchcancel',e=>{[...e.changedTouches].forEach(t=>delete touches[t.identifier]);});
 
 function applyT(){canvas.style.transform=`translate(${tx}px,${ty}px) scale(${scale})`;document.getElementById('zoom-display').textContent=Math.round(scale*100)+'%';renderLines();}
 function zoom(d){scale=Math.min(3,Math.max(0.2,scale+d));applyT();}
 function fitView(){
   const ids=Object.keys(positions);
-  if(!ids.length){ tx=60; ty=80; scale=1; applyT(); return; }
+  if(!ids.length){tx=60;ty=80;scale=1;applyT();return;}
   let x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity;
   ids.forEach(id=>{const p=positions[id];x0=Math.min(x0,p.x);y0=Math.min(y0,p.y);x1=Math.max(x1,p.x+CW);y1=Math.max(y1,p.y+CH);});
   const r=wrap.getBoundingClientRect();
@@ -513,18 +566,14 @@ function fitView(){
 // RENDER & LAYOUT
 // ═══════════════════════════════════════
 function render(){
-  const catMap = {};
+  const catMap={};
   relations.filter(r=>r.type==='category').forEach(r=>catMap[r.to]=r.from);
-  
-  visibleMembers = {};
-  Object.values(members).forEach(m => {
-    if ((catMap[m.id] || '친가') === currentTree) visibleMembers[m.id] = m;
+  visibleMembers={};
+  Object.values(members).forEach(m=>{
+    if((catMap[m.id]||'친가')===currentTree) visibleMembers[m.id]=m;
   });
-  visibleRelations = relations.filter(r => r.type !== 'category' && visibleMembers[r.from] && visibleMembers[r.to]);
-
-  computeLayout();
-  renderNodes();
-  renderLines();
+  visibleRelations=relations.filter(r=>r.type!=='category'&&visibleMembers[r.from]&&visibleMembers[r.to]);
+  computeLayout();renderNodes();renderLines();
 }
 
 function computeLayout(){
@@ -534,46 +583,30 @@ function computeLayout(){
   const hasParent=new Set(visibleRelations.filter(r=>r.type==='parent').map(r=>r.to));
   const sm={};
   visibleRelations.filter(r=>r.type==='spouse').forEach(r=>{(sm[r.from]=sm[r.from]||[]).push(r.to);(sm[r.to]=sm[r.to]||[]).push(r.from);});
-
   let changed=true;
   while(changed){
     changed=false;
     visibleRelations.filter(r=>r.type==='spouse').forEach(r=>{
-      if(hasParent.has(r.from) && !hasParent.has(r.to)){hasParent.add(r.to);changed=true;}
-      if(hasParent.has(r.to) && !hasParent.has(r.from)){hasParent.add(r.from);changed=true;}
+      if(hasParent.has(r.from)&&!hasParent.has(r.to)){hasParent.add(r.to);changed=true;}
+      if(hasParent.has(r.to)&&!hasParent.has(r.from)){hasParent.add(r.from);changed=true;}
     });
   }
-
   const ch=id=>visibleRelations.filter(r=>r.type==='parent'&&r.from===id).map(r=>r.to);
   const cch=id=>[...new Set([...ch(id),...(sm[id]||[]).flatMap(s=>ch(s))])];
   const vis=new Set();
-
-  const sortByAge = (a, b) => {
-    const getOrder = (memo) => {
-      if (!memo) return 9999;
-      const match = memo.match(/^\[(\d+)\]/);
-      return match ? parseInt(match[1], 10) : 9999;
-    };
-    const orderA = getOrder(visibleMembers[a].memo);
-    const orderB = getOrder(visibleMembers[b].memo);
-    if (orderA !== orderB) return orderA - orderB;
-    
-    const birthA = visibleMembers[a].birth || "9999";
-    const birthB = visibleMembers[b].birth || "9999";
-    return birthA.localeCompare(birthB);
+  const sortByAge=(a,b)=>{
+    const getOrder=memo=>{if(!memo)return 9999;const m=memo.match(/^\[(\d+)\]/);return m?parseInt(m[1],10):9999;};
+    const oA=getOrder(visibleMembers[a].memo),oB=getOrder(visibleMembers[b].memo);
+    if(oA!==oB)return oA-oB;
+    return(visibleMembers[a].birth||'9999').localeCompare(visibleMembers[b].birth||'9999');
   };
-
   function place(id,x,y){
     if(vis.has(id))return{width:CW,centerX:x+CW/2};
     vis.add(id);
     const sp=(sm[id]||[]).filter(s=>!vis.has(s));
     sp.forEach(s=>vis.add(s));
-    
-    let kids=cch(id);
-    kids.sort(sortByAge);
-
-    const grp=[id,...sp];
-    let sw=0;
+    let kids=cch(id);kids.sort(sortByAge);
+    const grp=[id,...sp];let sw=0;
     if(kids.length){
       let cx=x;
       kids.forEach(kid=>{
@@ -587,11 +620,9 @@ function computeLayout(){
     grp.forEach((gid,i)=>{positions[gid]={x:sx+i*(CW+HG/2),y};});
     return{width:tw,centerX:cx2};
   }
-
   let cx=0;
   let roots=[...allIds].filter(id=>!hasParent.has(id));
   roots.sort(sortByAge);
-  
   const done=new Set();
   roots.forEach(id=>{
     if(done.has(id))return;done.add(id);
@@ -609,25 +640,16 @@ function renderNodes(){
     d.className='node'+(m.gender?' '+m.gender:'')+(selectedId===m.id?' selected':'');
     d.id='node-'+m.id;d.style.left=p.x+'px';d.style.top=p.y+'px';d.style.width=CW+'px';
     const ge=m.gender==='male'?'👨':m.gender==='female'?'👩':'👤';
-    
-    let ageStr = '';
-    if (m.birth) {
-      const birthDate = new Date(m.birth);
-      const today = new Date();
-      let age = today.getFullYear() - birthDate.getFullYear() + 1;
-      if (!isNaN(age)) ageStr = age + '세';
-    }
-
-    let displayMemo = m.memo || '';
-    displayMemo = displayMemo.replace(/^\[\d+\]\s*/, '');
-
-    // ✨ photo_url 과 photo 모두 대응 & 드라이브 URL 변환
-    const rawPhoto = m.photo_url || m.photo || '';
-    const validPhotoSrc = getValidImageUrl(rawPhoto);
-
-    // 구글 보안 정책 우회를 위해 referrerpolicy="no-referrer" 필수 추가!
+    let ageStr='';
+    if(m.birth){const bd=new Date(m.birth);const age=new Date().getFullYear()-bd.getFullYear()+1;if(!isNaN(age))ageStr=age+'세';}
+    let displayMemo=(m.memo||'').replace(/^\[\d+\]\s*/,'');
+    const rawPhoto=m.photo_url||m.photo||'';
+    const validPhotoSrc=getValidImageUrl(rawPhoto);
     d.innerHTML=`<div class="node-inner">
-      ${validPhotoSrc?`<img class="node-photo" src="${validPhotoSrc}" referrerpolicy="no-referrer">`:`<div class="node-photo-placeholder">${ge}</div>`}
+      ${validPhotoSrc
+        ? `<img class="node-photo" src="${validPhotoSrc}" referrerpolicy="no-referrer" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+          +`<div class="node-photo-placeholder" style="display:none">${ge}</div>`
+        : `<div class="node-photo-placeholder">${ge}</div>`}
       <div class="node-info">
         <div class="node-name"><span class="node-gender-dot"></span>${m.name}</div>
         ${ageStr?`<div class="node-birth">${ageStr}</div>`:''}
@@ -675,14 +697,14 @@ function renderLines(){
 }
 
 // ═══════════════════════════════════════
-// SELECTION & MODAL
+// SELECTION & CONTEXT MENU
 // ═══════════════════════════════════════
 function selectNode(id){selectedId=selectedId===id?null:id;renderNodes();}
 document.addEventListener('click',()=>{if(selectedId){selectedId=null;renderNodes();}hideCtx();});
 function showCtx(e,id){
   selectedId=id;renderNodes();
   const m=document.getElementById('ctx-menu');m.style.display='block';
-  let x=e.clientX || (e.touches && e.touches[0].clientX), y=e.clientY || (e.touches && e.touches[0].clientY);
+  let x=e.clientX,y=e.clientY;
   if(x+180>window.innerWidth)x=window.innerWidth-185;
   if(y+200>window.innerHeight)y=window.innerHeight-205;
   m.style.left=x+'px';m.style.top=y+'px';
@@ -694,21 +716,24 @@ function showCtx(e,id){
 }
 function hideCtx(){document.getElementById('ctx-menu').style.display='none';}
 
+// ═══════════════════════════════════════
+// MODAL
+// ═══════════════════════════════════════
 function openAddModal(relId,action){
   modalMode={action,relId,editId:null};
   document.getElementById('modal-title').textContent=action==='child'?'자녀 추가':action==='spouse'?'배우자 추가':action==='parent'?'부모 추가':'인물 추가';
-  clearForm(); resetPhotoEditor(null);
+  clearForm();resetPhotoEditor(null);
   document.getElementById('modal-backdrop').style.display='flex';
 }
 function openEditModal(id){
   const m=members[id];if(!m)return;
   modalMode={action:'edit',relId:null,editId:id};
   document.getElementById('modal-title').textContent='정보 수정';
-  document.getElementById('f-name').value=m.name||'';document.getElementById('f-birth').value=m.birth||'';
-  document.getElementById('f-gender').value=m.gender||'';document.getElementById('f-memo').value=m.memo||'';
-  
-  // ✨ photo_url 대응
-  const rawPhoto = m.photo_url || m.photo || '';
+  document.getElementById('f-name').value=m.name||'';
+  document.getElementById('f-birth').value=m.birth||'';
+  document.getElementById('f-gender').value=m.gender||'';
+  document.getElementById('f-memo').value=m.memo||'';
+  const rawPhoto=m.photo_url||m.photo||'';
   resetPhotoEditor(getValidImageUrl(rawPhoto));
   document.getElementById('modal-backdrop').style.display='flex';
 }
@@ -723,26 +748,16 @@ function saveModal(){
   const name=document.getElementById('f-name').value.trim();
   if(!name){toast('이름을 입력해주세요.');return;}
   const birth=document.getElementById('f-birth').value,gender=document.getElementById('f-gender').value,memo=document.getElementById('f-memo').value.trim();
-  
-  const photoData = getCroppedBase64();
-
+  const photoData=getCroppedBase64();
   if(modalMode.action==='edit'){
     const m=members[modalMode.editId];
     m.name=name;m.birth=birth;m.gender=gender;m.memo=memo;
-    // ✨ 사진을 새로 바꿨을 때만 데이터 업데이트 (기존 드라이브 URL 보호)
-    if(photoData) {
-      m.photo = photoData;
-      m.photo_url = photoData;
-    }
+    if(photoData){m.photo=photoData;m.photo_url=photoData;}
     toast(`${name} 정보가 수정되었습니다.`);
   }else{
     const id='p'+nextId++;
-    members[id]={
-      id, name, birth, gender, memo, 
-      photo: photoData||null, 
-      photo_url: photoData||null // 호환성을 위해 둘 다 저장
-    };
-    relations.push({type:'category', from:currentTree, to:id});
+    members[id]={id,name,birth,gender,memo,photo:photoData||null,photo_url:photoData||null};
+    relations.push({type:'category',from:currentTree,to:id});
     if(modalMode.action==='child'&&modalMode.relId)relations.push({type:'parent',from:modalMode.relId,to:id});
     else if(modalMode.action==='spouse'&&modalMode.relId)relations.push({type:'spouse',from:modalMode.relId,to:id});
     else if(modalMode.action==='parent'&&modalMode.relId)relations.push({type:'parent',from:id,to:modalMode.relId});
@@ -756,9 +771,13 @@ function deleteMember(id){
   if(!confirm(`"${m.name}" 을(를) 삭제할까요?\n관련 관계도 모두 삭제됩니다.`))return;
   delete members[id];delete positions[id];
   relations=relations.filter(r=>r.from!==id&&r.to!==id);
-  if(selectedId===id)selectedId=null;render();scheduleSave();toast(`${m.name} 이(가) 삭제되었습니다.`);
+  if(selectedId===id)selectedId=null;
+  render();scheduleSave();toast(`${m.name} 이(가) 삭제되었습니다.`);
 }
 
+// ═══════════════════════════════════════
+// HELP & TOAST
+// ═══════════════════════════════════════
 let helpVisible=true;
 function toggleHelp(){helpVisible=!helpVisible;document.getElementById('help-panel').classList.toggle('hidden',!helpVisible);}
 let toastTimer;
@@ -766,83 +785,82 @@ function toast(msg){const el=document.getElementById('toast');el.textContent=msg
 window.addEventListener('resize',renderLines);
 
 // ═══════════════════════════════════════
-// PHOTO ENGINE
+// ✅ PHOTO ENGINE (크롭 버그 수정)
 // ═══════════════════════════════════════
 let currentRawImg = null;
 let imgX = 0, imgY = 0, isDragging = false, startX, startY;
-const modalUIPixel = 100;
+const MODAL_BOX = 100; // UI 미리보기 박스 크기 (px)
 
+// 파일 업로드 → 리사이즈 → 미리보기
 document.addEventListener('change', function(e) {
-  if(e.target.id === 'modal-photo-upload') {
-    const file = e.target.files[0];
-    if(!file) return;
-    const reader = new FileReader();
-    reader.onload = function(event) { 
-      const tempImg = new Image();
-      tempImg.onload = function() {
-        const MAX_SIZE = 800;
-        let w = tempImg.width, h = tempImg.height;
-        if (w > MAX_SIZE || h > MAX_SIZE) {
-          const r = Math.max(MAX_SIZE/w, MAX_SIZE/h);
-          w *= r; h *= r;
-        }
-        const resizeCvs = document.createElement('canvas');
-        resizeCvs.width = w; resizeCvs.height = h;
-        const resizeCtx = resizeCvs.getContext('2d');
-        resizeCtx.drawImage(tempImg, 0, 0, w, h);
-        
-        currentRawImg = new Image();
-        currentRawImg.onload = function() {
-          const previewImg = document.getElementById('modal-photo-preview');
-          const ratio = Math.max(modalUIPixel / currentRawImg.width, modalUIPixel / currentRawImg.height);
-          previewImg.style.width = (currentRawImg.width * ratio) + 'px';
-          previewImg.style.height = (currentRawImg.height * ratio) + 'px';
-          previewImg.src = currentRawImg.src;
-          previewImg.style.display = 'block';
-          previewImg.style.objectFit = 'fill';
-          document.getElementById('modal-photo-placeholder').style.display = 'none';
-          
-          imgX = (modalUIPixel - (currentRawImg.width * ratio)) / 2;
-          imgY = (modalUIPixel - (currentRawImg.height * ratio)) / 2;
-          updateImgPos();
-        };
-        currentRawImg.src = resizeCvs.toDataURL('image/jpeg', 0.85);
+  if (e.target.id !== 'modal-photo-upload') return;
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    const tempImg = new Image();
+    tempImg.onload = function() {
+      // 리사이즈: 최대 800px
+      const MAX = 800;
+      let w = tempImg.width, h = tempImg.height;
+      if (w > MAX || h > MAX) {
+        const ratio = Math.min(MAX / w, MAX / h);
+        w = Math.round(w * ratio); h = Math.round(h * ratio);
+      }
+      const rc = document.createElement('canvas');
+      rc.width = w; rc.height = h;
+      rc.getContext('2d').drawImage(tempImg, 0, 0, w, h);
+
+      currentRawImg = new Image();
+      currentRawImg.onload = function() {
+        const previewImg = document.getElementById('modal-photo-preview');
+        // 박스를 꽉 채우는 비율로 렌더
+        const r = Math.max(MODAL_BOX / currentRawImg.width, MODAL_BOX / currentRawImg.height);
+        previewImg.style.width  = (currentRawImg.width  * r) + 'px';
+        previewImg.style.height = (currentRawImg.height * r) + 'px';
+        previewImg.src = currentRawImg.src;
+        previewImg.style.display = 'block';
+        document.getElementById('modal-photo-placeholder').style.display = 'none';
+        // 초기 위치: 가운데 정렬
+        imgX = (MODAL_BOX - currentRawImg.width  * r) / 2;
+        imgY = (MODAL_BOX - currentRawImg.height * r) / 2;
+        updateImgPos();
       };
-      tempImg.src = event.target.result;
+      currentRawImg.src = rc.toDataURL('image/jpeg', 0.85);
     };
-    reader.readAsDataURL(file);
-  }
+    tempImg.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
 });
 
-// ✨ 외부 URL 로드 시 CORS(보안 오류) 방지 처리를 추가
+// 외부/구글드라이브 URL 로드 (수정 모달용)
 function loadExistingPhotoToEditor(src) {
   const previewImg = document.getElementById('modal-photo-preview');
-  
-  // 구글 드라이브나 외부 링크인 경우 캔버스로 자르지 않고 보기만 지원
   if (src.startsWith('http')) {
+    // 외부 URL → 드래그 크롭 미지원, 그냥 표시만
     previewImg.style.width = '100%';
     previewImg.style.height = '100%';
     previewImg.style.objectFit = 'cover';
-    previewImg.src = src;
     previewImg.setAttribute('referrerpolicy', 'no-referrer');
+    previewImg.src = src;
     previewImg.style.display = 'block';
-    previewImg.style.transform = `translate(0px, 0px)`;
+    previewImg.style.transform = 'translate(0px,0px)';
     document.getElementById('modal-photo-placeholder').style.display = 'none';
-    currentRawImg = null; // 외부 사진은 드래그 크롭 금지
+    currentRawImg = null;
     return;
   }
-
-  // Base64 등 내부 이미지인 경우 기존처럼 편집 가능
+  // Base64 → 편집 가능
   currentRawImg = new Image();
   currentRawImg.onload = function() {
-    const ratio = Math.max(modalUIPixel / currentRawImg.width, modalUIPixel / currentRawImg.height);
-    previewImg.style.width = (currentRawImg.width * ratio) + 'px';
-    previewImg.style.height = (currentRawImg.height * ratio) + 'px';
+    const previewImg = document.getElementById('modal-photo-preview');
+    const r = Math.max(MODAL_BOX / currentRawImg.width, MODAL_BOX / currentRawImg.height);
+    previewImg.style.width  = (currentRawImg.width  * r) + 'px';
+    previewImg.style.height = (currentRawImg.height * r) + 'px';
     previewImg.src = currentRawImg.src;
     previewImg.style.display = 'block';
     document.getElementById('modal-photo-placeholder').style.display = 'none';
-    imgX = (modalUIPixel - (currentRawImg.width * ratio)) / 2;
-    imgY = (modalUIPixel - (currentRawImg.height * ratio)) / 2;
+    imgX = (MODAL_BOX - currentRawImg.width  * r) / 2;
+    imgY = (MODAL_BOX - currentRawImg.height * r) / 2;
     updateImgPos();
   };
   currentRawImg.src = src;
@@ -850,88 +868,111 @@ function loadExistingPhotoToEditor(src) {
 
 function updateImgPos() {
   const previewImg = document.getElementById('modal-photo-preview');
-  if(previewImg) previewImg.style.transform = `translate(${imgX}px, ${imgY}px)`;
+  if (previewImg) previewImg.style.transform = `translate(${imgX}px, ${imgY}px)`;
 }
 
+// 드래그로 사진 위치 조정
 function startDrag(e) {
-  const targetBox = e.target.closest('div[style*="border-radius: 12px"]');
-  if(!targetBox || !currentRawImg) return;
+  const box = e.target.closest('#photo-box');
+  if (!box || !currentRawImg) return;
   isDragging = true;
-  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-  const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-  startX = clientX - imgX; startY = clientY - imgY;
+  const cx = e.touches ? e.touches[0].clientX : e.clientX;
+  const cy = e.touches ? e.touches[0].clientY : e.clientY;
+  startX = cx - imgX; startY = cy - imgY;
   document.getElementById('modal-photo-preview').style.cursor = 'grabbing';
 }
-
 function doDrag(e) {
-  if(!isDragging) return;
-  if(e.cancelable) e.preventDefault();
-  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-  const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-  imgX = clientX - startX; imgY = clientY - startY;
+  if (!isDragging) return;
+  if (e.cancelable) e.preventDefault();
+  const cx = e.touches ? e.touches[0].clientX : e.clientX;
+  const cy = e.touches ? e.touches[0].clientY : e.clientY;
+  imgX = cx - startX; imgY = cy - startY;
   updateImgPos();
 }
-
-function endDrag() { 
-  isDragging = false; 
-  const preview = document.getElementById('modal-photo-preview');
-  if(preview) preview.style.cursor = 'grab';
+function endDrag() {
+  isDragging = false;
+  const p = document.getElementById('modal-photo-preview');
+  if (p) p.style.cursor = 'grab';
 }
-
-document.addEventListener('mousedown', startDrag);
+document.addEventListener('mousedown',  startDrag);
 document.addEventListener('touchstart', startDrag, {passive: false});
-document.addEventListener('mousemove', doDrag, {passive: false});
-document.addEventListener('touchmove', doDrag, {passive: false});
-document.addEventListener('mouseup', endDrag);
-document.addEventListener('touchend', endDrag);
-document.addEventListener('touchcancel', endDrag);
+document.addEventListener('mousemove',  doDrag,    {passive: false});
+document.addEventListener('touchmove',  doDrag,    {passive: false});
+document.addEventListener('mouseup',    endDrag);
+document.addEventListener('touchend',   endDrag);
+document.addEventListener('touchcancel',endDrag);
 
+// ✅ 핵심 수정: canvas에 실제로 보이는 위치 그대로 잘라내기
 function getCroppedBase64() {
   const previewImg = document.getElementById('modal-photo-preview');
   if (!currentRawImg || previewImg.style.display === 'none') return null;
-  
+
   try {
-    const CROP_SIZE = 160; 
-    const canvas = document.createElement('canvas');
-    canvas.width = CROP_SIZE; canvas.height = CROP_SIZE;
-    const ctx = canvas.getContext('2d');
-    ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, CROP_SIZE, CROP_SIZE);
-    
-    const ratio = Math.max(CROP_SIZE / currentRawImg.width, CROP_SIZE / currentRawImg.height);
-    const scaleMultiplier = CROP_SIZE / modalUIPixel;
-    
-    ctx.translate(imgX * scaleMultiplier, imgY * scaleMultiplier); 
-    ctx.scale(ratio, ratio);
-    
-    ctx.drawImage(currentRawImg, 0, 0);
-    return canvas.toDataURL('image/jpeg', 0.85); 
+    const CROP = 160; // 저장할 이미지 크기
+
+    // 미리보기에서 img 실제 렌더 크기
+    const renderedW = parseFloat(previewImg.style.width);
+    const renderedH = parseFloat(previewImg.style.height);
+
+    // 미리보기 박스(MODAL_BOX) 대비 저장 캔버스(CROP) 배율
+    const scale = CROP / MODAL_BOX;
+
+    const cvs = document.createElement('canvas');
+    cvs.width = CROP; cvs.height = CROP;
+    const ctx = cvs.getContext('2d');
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, CROP, CROP);
+
+    // 원본 이미지 → 렌더된 크기의 배율
+    const srcScaleX = currentRawImg.width  / renderedW;
+    const srcScaleY = currentRawImg.height / renderedH;
+
+    // 잘라낼 원본 좌표 (imgX, imgY는 MODAL_BOX 기준 오프셋)
+    const sx = -imgX * srcScaleX;
+    const sy = -imgY * srcScaleY;
+    // 잘라낼 원본 크기 (MODAL_BOX를 원본 해상도로 환산)
+    const sw = MODAL_BOX * srcScaleX;
+    const sh = MODAL_BOX * srcScaleY;
+
+    ctx.drawImage(currentRawImg, sx, sy, sw, sh, 0, 0, CROP, CROP);
+    return cvs.toDataURL('image/jpeg', 0.85);
   } catch(e) {
-    console.warn("Photo crop memory error", e);
+    console.warn('사진 크롭 오류:', e);
     return null;
   }
 }
 
 function resetPhotoEditor(existingPhotoSrc) {
-  currentRawImg = null;
+  currentRawImg = null; imgX = 0; imgY = 0;
   const previewImg = document.getElementById('modal-photo-preview');
   const placeholder = document.getElementById('modal-photo-placeholder');
   const uploadInput = document.getElementById('modal-photo-upload');
-  if(uploadInput) uploadInput.value = '';
-  if(previewImg) { previewImg.style.display = 'none'; previewImg.style.transform = `translate(0px, 0px)`; previewImg.removeAttribute('referrerpolicy'); }
-  if(placeholder) placeholder.style.display = 'flex';
+  if (uploadInput) uploadInput.value = '';
+  if (previewImg) {
+    previewImg.style.display = 'none';
+    previewImg.style.transform = 'translate(0px,0px)';
+    previewImg.style.width = '';
+    previewImg.style.height = '';
+    previewImg.style.objectFit = '';
+    previewImg.removeAttribute('referrerpolicy');
+    previewImg.src = '';
+  }
+  if (placeholder) placeholder.style.display = 'flex';
   if (existingPhotoSrc) loadExistingPhotoToEditor(existingPhotoSrc);
 }
 
 // ═══════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════
-window.addEventListener('load',()=>{
-  if(GAS_URL){
-    document.getElementById('gas-url-input').value=GAS_URL;
-    dismissBanner();setSyncStatus('loading','불러오는 중...');
+window.addEventListener('load', () => {
+  if (GAS_URL) {
+    document.getElementById('gas-url-input').value = GAS_URL;
+    dismissBanner();
+    setSyncStatus('loading', '불러오는 중...');
     loadFromGAS();
-  }else{
-    hideLoading();loadFromLocal();
+  } else {
+    hideLoading();
+    loadFromLocal();
   }
 });
 </script>
